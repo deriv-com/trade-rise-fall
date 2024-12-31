@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef } from "react";
-import { getDerivAPI } from "../services/deriv-api.instance";
+import { getDerivAPI } from "../../services/deriv-api.instance";
 import { SmartChart, ChartTitle } from "@deriv/deriv-charts";
 import "@deriv/deriv-charts/dist/smartcharts.css";
 import "./DerivTrading.scss";
 
 const subscriptions = {};
 
-export const DerivTrading = () => {
+const DerivTrading = () => {
   const barriers = [];
   const [symbol, setSymbol] = useState("1HZ10V");
   const [error, setError] = useState("");
@@ -127,3 +127,5 @@ export const DerivTrading = () => {
     </div>
   );
 };
+
+export default DerivTrading;
