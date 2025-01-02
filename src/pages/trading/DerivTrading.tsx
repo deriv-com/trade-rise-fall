@@ -3,99 +3,46 @@ import { getDerivAPI } from "../../services/deriv-api.instance";
 import { SmartChart, ChartTitle } from "@deriv/deriv-charts";
 import "@deriv/deriv-charts/dist/smartcharts.css";
 import "./DerivTrading.scss";
-import { TickResponse } from "../../types/deriv-api.types";
-import { DerivAPIService } from "../../services/deriv-api.service";
+import { isBrowser } from "../../common/utils";
 
-interface Subscriptions {
-  [key: string]: boolean;
-}
-
-const subscriptions: Subscriptions = {};
-
-const DerivTrading = () => {
-  const barriers: any[] = [];
-  const [symbol, setSymbol] = useState<string>("1HZ10V");
-  const [error, setError] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [chartStatus, setChartStatus] = useState<boolean>(true);
-  const derivAPI: DerivAPIService = getDerivAPI();
-  const [chatSubscriptionId, setChatSubscriptionId] = useState<string>("");
-  const chartSubscriptionIdRef = useRef<string>(chatSubscriptionId);
+export const DerivTrading = () => {
+  const barriers = [];
+  const [symbol, setSymbol] = useState("1HZ10V");
+  const [chartStatus, setChartStatus] = useState(true);
+  const derivAPI = getDerivAPI();
+  const [showChart, setShowChart] = useState(false);
 
   useEffect(() => {
-    const initializeAPI = async () => {
-      try {
-        // const response = await derivAPI.getActiveSymbols();
-        // setSymbols(response.active_symbols);
-      } catch (err) {
-        setError(
-          err instanceof Error ? err.message : "Failed to initialize Deriv API"
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeAPI();
-
-    // Cleanup subscriptions
-    return () => {
-      derivAPI.unsubscribeAll();
-      Object.keys(subscriptions).forEach(requestForgetStream);
-    };
+    setShowChart(isBrowser());
   }, []);
 
-  useEffect(() => {
-    chartSubscriptionIdRef.current = chatSubscriptionId;
-  }, [chatSubscriptionId]);
-
-  const requestAPI = async (request: any): Promise<any> => {
-    console.log(
-      JSON.stringify(request),
-      request,
-      await derivAPI.sendRequest(request),
-      "requestAPI"
-    );
+  const requestAPI = async (request) => {
     return derivAPI.sendRequest(request);
   };
 
-  const requestForget = async (): Promise<void> => {
-    return derivAPI.unsubscribeAll();
-  };
-
-  const requestForgetStream = (): void => {
-    derivAPI.unsubscribeAll();
-  };
-
-  const requestSubscribe = async (
-    request: any,
-    callback: (response: TickResponse | []) => void
-  ): Promise<void> => {
-    console.log(request, "requestsubscribe");
+  const requestSubscribe = async (request, callback) => {
     try {
-      derivAPI.subscribeTicks(request, (response: TickResponse) => {
-        console.log(response, "response");
-        if ('error' in response) {
-          throw response.error;
-        }
-        callback(response);
-      });
-    } catch (e: any) {
-      console.log(e, "error");
-      // eslint-disable-next-line no-console
-      e?.error?.code === "MarketIsClosed" && callback([]); //if market is closed sending a empty array  to resolve
+      derivAPI.subscribeStream(
+        request,
+        (response) => {
+          if (response?.error?.code === "MarketIsClosed") {
+            return callback([]);
+          }
+          if (response?.error) {
+            throw response.error;
+          }
+          callback(response);
+        },
+        "ticks"
+      );
+    } catch (error) {
+      if (error?.code === "MarketIsClosed") {
+        callback([]);
+      }
     }
   };
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
-  const is_connection_opened: boolean = !!derivAPI;
+  const is_connection_opened = !!derivAPI;
   const settings = {
     assetInformation: false, // ui.is_chart_asset_info_visible,
     countdown: true,
@@ -109,32 +56,32 @@ const DerivTrading = () => {
     <div className="trading-container">
       <h2>Available Trading Symbols</h2>
       <div className="dashboard__chart-wrapper" dir="ltr">
-        <SmartChart
-          id="dbot"
-          barriers={barriers}
-          chartControlsWidgets={null}
-          enabledChartFooter={false}
-          chartStatusListener={(v: boolean) => setChartStatus(!v)}
-          toolbarWidget={() => <></>}
-          chartType="line"
-          isMobile={false}
-          enabledNavigationWidget={true}
-          granularity={0}
-          requestAPI={requestAPI}
-          requestForget={requestForget}
-          requestForgetStream={() => derivAPI.unsubscribeAll()}
-          requestSubscribe={requestSubscribe}
-          settings={settings}
-          symbol={symbol}
-          topWidgets={() => (
-            <ChartTitle onChange={(symbol: string) => setSymbol(symbol)} />
-          )}
-          isConnectionOpened={is_connection_opened}
-          isLive
-        />
+        {showChart && (
+          <SmartChart
+            id="dbot"
+            barriers={barriers}
+            chartControlsWidgets={null}
+            enabledChartFooter={false}
+            chartStatusListener={(v) => setChartStatus(!v)}
+            toolbarWidget={() => <></>}
+            chartType={"line"}
+            isMobile={false}
+            enabledNavigationWidget={true}
+            granularity={0}
+            requestAPI={requestAPI}
+            requestForget={() => {}}
+            requestForgetStream={() => {}}
+            requestSubscribe={requestSubscribe}
+            settings={settings}
+            symbol={symbol}
+            topWidgets={() => (
+              <ChartTitle onChange={(symbol) => setSymbol(symbol)} />
+            )}
+            isConnectionOpened={is_connection_opened}
+            isLive
+          />
+        )}
       </div>
     </div>
   );
 };
-
-export default DerivTrading;

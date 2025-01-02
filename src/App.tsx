@@ -3,15 +3,15 @@ import "./App.scss";
 import DerivTrading from "./pages/trading/DerivTrading";
 import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
 import { setSmartChartsPublicPath } from "@deriv/deriv-charts";
-import { getUrlBase } from "./utils/url";
+import { getUrlBase } from "./common/utils";
 
 const App: React.FC = () => {
-  useEffect(() => { 
+  useEffect(() => {
     try {
       const chartsPath = getUrlBase("/js/smartcharts/");
       setSmartChartsPublicPath(chartsPath);
     } catch (error) {
-      console.error('Failed to initialize charts:', error);
+      console.error("Failed to initialize charts:", error);
     }
   }, []);
 
@@ -20,7 +20,7 @@ const App: React.FC = () => {
       <header className="app-header">
         <h1>Deriv Trading App</h1>
       </header>
-      
+
       <main className="app-main">
         <ErrorBoundary>
           <DerivTrading />
