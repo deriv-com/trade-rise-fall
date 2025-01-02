@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import "./App.scss";
-import DerivTrading from "./pages/trading/DerivTrading";
+import TradingPage from "./pages/trading";
 import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
 import { setSmartChartsPublicPath } from "@deriv/deriv-charts";
 import { getUrlBase } from "./common/utils";
@@ -23,7 +23,7 @@ const App: React.FC = () => {
 
       <main className="app-main">
         <ErrorBoundary>
-          <DerivTrading />
+          <TradingPage />
         </ErrorBoundary>
       </main>
     </div>
