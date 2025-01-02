@@ -11,6 +11,7 @@
     "@deriv-com/quill-ui": "^1.24.4",
     "@deriv/deriv-api": "^1.0.15",
     "@deriv/deriv-charts": "^2.8.0",
+    "@deriv/quill-icons": "^2.2.2",
     "@rsbuild/plugin-basic-ssl": "^1.1.1",
     "@rsbuild/plugin-sass": "^1.1.2",
     "react": "^18.2.0",

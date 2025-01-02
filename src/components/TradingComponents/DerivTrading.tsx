@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import { getDerivAPI } from "../../services/deriv-api.instance";
 import { SmartChart, ChartTitle } from "@deriv/deriv-charts";
 import { isBrowser } from "../../common/utils";
+import { 
+  Button, 
+  TextField, 
+  Text, 
+  Tooltip,
+  Checkbox,
+  CheckboxProps
+} from '@deriv-com/quill-ui';
 import "@deriv/deriv-charts/dist/smartcharts.css";
 import "./DerivTrading.scss";
 
@@ -19,29 +27,14 @@ export default function DerivTrading() {
   const [symbol, setSymbol] = useState<string>("1HZ10V");
   const [chartStatus, setChartStatus] = useState<boolean>(true);
   const [showChart, setShowChart] = useState<boolean>(false);
-
-  const [selectedRate, setSelectedRate] = useState<number>(3);
-  const [stake, setStake] = useState<number>(50);
-  const [takeProfit, setTakeProfit] = useState<number>(150);
-  const [error, setError] = useState<string>("");
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [chatSubscriptionId, setChatSubscriptionId] = useState<string>("");
+  const [duration, setDuration] = useState(1);
+  const [stake, setStake] = useState(50);
+  const [allowEquals, setAllowEquals] = useState(false);
+  const [activeTab, setActiveTab] = useState('duration');
+  const [activeStakeTab, setActiveStakeTab] = useState('stake');
+  const [growthRate, setGrowthRate] = useState(3);
 
   const derivAPI = getDerivAPI();
-
-  const handleStakeChange = (value: string) => {
-    const numValue = parseFloat(value);
-    if (!isNaN(numValue)) {
-      setStake(numValue);
-    }
-  };
-
-  const handleTakeProfitChange = (value: string) => {
-    const numValue = parseFloat(value);
-    if (!isNaN(numValue)) {
-      setTakeProfit(numValue);
-    }
-  };
 
   useEffect(() => {
     setShowChart(isBrowser());
@@ -76,74 +69,90 @@ export default function DerivTrading() {
     }
   };
 
+  const handleDurationChange = (value: string) => {
+    const numValue = parseInt(value);
+    if (!isNaN(numValue)) {
+      setDuration(Math.min(Math.max(numValue, 1), 1440));
+    }
+  };
+
+  const handleStakeChange = (value: string) => {
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      setStake(numValue);
+    }
+  };
+
+  const handleCheckboxChange: CheckboxProps['onChange'] = (e) => {
+    if (e.target instanceof HTMLInputElement) {
+      setAllowEquals(e.target.checked);
+    }
+  };
+
   const is_connection_opened = !!derivAPI;
   const settings: ChartSettings = {
-    assetInformation: false,
+    assetInformation: true,
     countdown: true,
-    isHighestLowestMarkerEnabled: false,
+    isHighestLowestMarkerEnabled: true,
     language: "en",
     position: "bottom",
-    theme: "dark",
+    theme: "light",
   };
 
-  const requestForget = async (): Promise<void> => {
-    return derivAPI.unsubscribeAll();
-  };
-
-  const requestForgetStream = (): void => {
-    derivAPI.unsubscribeAll();
-  };
+  const growthRates = [1, 2, 3, 4, 5];
 
   return (
     <div className="trading-container">
-      <div className="dashboard__chart-wrapper" dir="ltr">
-        {showChart && (
-          <SmartChart
-            id="dbot"
-            barriers={barriers}
-            chartControlsWidgets={null}
-            enabledChartFooter={false}
-            chartStatusListener={(v: boolean) => setChartStatus(!v)}
-            toolbarWidget={() => <></>}
-            chartType={"line"}
-            isMobile={false}
-            enabledNavigationWidget={true}
-            granularity={0}
-            requestAPI={requestAPI}
-            requestForget={() => {}}
-            requestForgetStream={() => {}}
-            requestSubscribe={requestSubscribe}
-            settings={settings}
-            symbol={symbol}
-            topWidgets={() => (
-              <ChartTitle onChange={(symbol: string) => setSymbol(symbol)} />
-            )}
-            isConnectionOpened={is_connection_opened}
-            isLive
-          />
-        )}
+      <div className="chart-section">
+        <div className="chart-container">
+          {showChart && (
+            <SmartChart
+              id="dbot"
+              barriers={barriers}
+              chartControlsWidgets={null}
+              enabledChartFooter={true}
+              chartStatusListener={(v: boolean) => setChartStatus(!v)}
+              toolbarWidget={() => <></>}
+              chartType={"line"}
+              isMobile={false}
+              enabledNavigationWidget={true}
+              granularity={0}
+              requestAPI={requestAPI}
+              requestForget={() => {}}
+              requestForgetStream={() => {}}
+              requestSubscribe={requestSubscribe}
+              settings={settings}
+              symbol={symbol}
+              topWidgets={() => (
+                <ChartTitle onChange={(symbol: string) => setSymbol(symbol)} />
+              )}
+              isConnectionOpened={is_connection_opened}
+              isLive
+            />
+          )}
+        </div>
       </div>
+
       <div className="trading-panel">
-        <div className="info-header">
+        <div className="panel-header">
+          <Text size="sm" className="learn-link">Learn about this trade type</Text>
           <div className="trade-type">
-            <span>Accumulators</span>
+            <div className="trade-icons">
+              <div className="rise-icon">↑</div>
+              <div className="fall-icon">↓</div>
+            </div>
+            <Text size="sm">Rise/Fall</Text>
           </div>
-          <a href="#" className="learn-link">
-            Learn about this trade type
-          </a>
         </div>
 
-        <div className="growth-rate">
-          <div className="label">
-            <h4>Growth rate</h4>
-            <span>ℹ️</span>
-          </div>
+        <div className="growth-rate-section">
+          <Text size="sm">Growth rate</Text>
           <div className="rate-buttons">
-            {[1, 2, 3, 4, 5].map((rate) => (
+            {growthRates.map((rate) => (
               <button
                 key={rate}
-                className={selectedRate === rate ? "active" : ""}
-                onClick={() => setSelectedRate(rate)}
+                className={growthRate === rate ? 'active' : ''}
+                onClick={() => setGrowthRate(rate)}
               >
                 {rate}%
               </button>
@@ -151,71 +160,86 @@ export default function DerivTrading() {
           </div>
         </div>
 
-        <div className="input-group">
-          <div className="label">
-            <h4>Stake</h4>
-          </div>
-          <div className="input-wrapper">
-            <button onClick={() => setStake(Math.max(0, stake - 1))}>-</button>
-            <input
-              type="text"
-              value={stake.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-              onChange={(e) => handleStakeChange(e.target.value)}
-            />
-            <div className="currency">USD</div>
-            <button onClick={() => setStake(stake + 1)}>+</button>
-          </div>
-        </div>
-
-        <div className="input-group">
-          <div className="label">
-            <h4>Take profit</h4>
-            <span>ℹ️</span>
-          </div>
-          <div className="input-wrapper">
-            <button onClick={() => setTakeProfit(Math.max(0, takeProfit - 1))}>
+        <div className="stake-section">
+          <Text size="sm">Stake</Text>
+          <div className="stake-input">
+            <button 
+              className="minus-btn"
+              onClick={() => setStake(Math.max(0, stake - 1))}
+            >
               -
             </button>
-            <input
-              type="text"
-              value={takeProfit.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-              onChange={(e) => handleTakeProfitChange(e.target.value)}
+            <TextField
+              value={stake.toString()}
+              onChange={(e) => handleStakeChange(e.target.value)}
+              className="stake-field"
             />
-            <div className="currency">USD</div>
-            <button onClick={() => setTakeProfit(takeProfit + 1)}>+</button>
+            <Text size="sm" className="currency">USD</Text>
+            <button 
+              className="plus-btn"
+              onClick={() => setStake(stake + 1)}
+            >
+              +
+            </button>
           </div>
         </div>
 
-        <div className="info-row">
-          <span>Max. payout</span>
-          <span className="value">
-            {(6000).toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}{" "}
-            USD
-          </span>
-        </div>
-        <div className="info-row">
-          <span>Max. ticks</span>
-          <span className="value">75 ticks</span>
+        <div className="equals-section">
+          <div className="checkbox-wrapper">
+            <Checkbox
+              id="allow-equals"
+              checked={allowEquals}
+              onChange={handleCheckboxChange}
+              label="Allow equals"
+            />
+          </div>
+          <Tooltip tooltipContent="Allow equals tooltip" tooltipPosition="top">
+            <Text size="sm">ⓘ</Text>
+          </Tooltip>
         </div>
 
-        <button className="buy-button">
-          <span>Buy</span>
-          <svg viewBox="0 0 24 24" width="24" height="24">
-            <path
-              fill="currentColor"
-              d="M16.59 7.58L10 14.17l-3.59-3.58L5 12l5 5 8-8z"
-            />
-          </svg>
-        </button>
+        <div className="payout-section">
+          <div className="payout-info">
+            <div className="info-row">
+              <Text size="sm">Max. payout</Text>
+              <Text size="sm">6,000.00 USD</Text>
+            </div>
+            <div className="info-row">
+              <Text size="sm">Max. ticks</Text>
+              <Text size="sm">75 ticks</Text>
+            </div>
+          </div>
+
+          <Button 
+            variant="primary"
+            size="lg"
+            fullWidth
+            className="rise-button"
+          >
+            <div className="button-content">
+              <div className="left">
+                <Text size="sm">↑</Text>
+                <Text size="sm">Rise</Text>
+              </div>
+              <Text size="sm">95.42%</Text>
+            </div>
+          </Button>
+
+          <Button 
+            variant="primary"
+            size="lg"
+            fullWidth
+            className="fall-button"
+          >
+            <div className="button-content">
+              <div className="left">
+                <Text size="sm">↓</Text>
+                <Text size="sm">Fall</Text>
+              </div>
+              <Text size="sm">95.20%</Text>
+            </div>
+          </Button>
+        </div>
       </div>
     </div>
   );
