@@ -14,7 +14,7 @@ interface ChartSettings {
   theme: string;
 }
 
-export const DerivTrading = () => {
+export default function DerivTrading() {
   const barriers: any[] = [];
   const [symbol, setSymbol] = useState<string>("1HZ10V");
   const [chartStatus, setChartStatus] = useState<boolean>(true);
@@ -36,7 +36,7 @@ export const DerivTrading = () => {
     try {
       derivAPI.subscribeStream(
         request,
-        (response) => {
+        (response: any) => {
           if (response?.error?.code === "MarketIsClosed") {
             return callback([]);
           }
@@ -96,4 +96,4 @@ export const DerivTrading = () => {
       </div>
     </div>
   );
-};
+}
