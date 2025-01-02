@@ -5,6 +5,7 @@ import "@deriv/deriv-charts/dist/smartcharts.css";
 import "./DerivTrading.scss";
 import { TickResponse } from "../../types/deriv-api.types";
 import { DerivAPIService } from "../../services/deriv-api.service";
+import { Heading } from "@deriv-com/quill-ui";
 
 interface Subscriptions {
   [key: string]: boolean;
@@ -75,7 +76,7 @@ const DerivTrading = () => {
     try {
       derivAPI.subscribeTicks(request, (response: TickResponse) => {
         console.log(response, "response");
-        if ('error' in response) {
+        if ("error" in response) {
           throw response.error;
         }
         callback(response);
@@ -107,7 +108,7 @@ const DerivTrading = () => {
 
   return (
     <div className="trading-container">
-      <h2>Available Trading Symbols</h2>
+      <Heading.H3 centered>Available Trading Symbols</Heading.H3>
       <div className="dashboard__chart-wrapper" dir="ltr">
         <SmartChart
           id="dbot"
