@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { getDerivAPI } from "../services/deriv-api.instance";
 import { SmartChart, ChartTitle } from "@deriv/deriv-charts";
+import { isBrowser } from "../common/utils";
 import "@deriv/deriv-charts/dist/smartcharts.css";
 import "./DerivTrading.scss";
 
@@ -12,8 +13,7 @@ export const DerivTrading = () => {
   const [showChart, setShowChart] = useState(false);
 
   useEffect(() => {
-    const isBrowser = typeof window !== "undefined";
-    setShowChart(isBrowser);
+    setShowChart(isBrowser());
   }, []);
 
   const requestAPI = async (request) => {
