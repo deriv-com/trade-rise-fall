@@ -10,11 +10,21 @@ export const DerivTrading = () => {
   const [chartStatus, setChartStatus] = useState(true);
   const derivAPI = getDerivAPI();
   const [showChart, setShowChart] = useState(false);
+  const [isConnected, setIsConnected] = useState(derivAPI.isConnected());
 
   useEffect(() => {
-    const isBrowser = typeof window !== "undefined";
-    setShowChart(isBrowser);
-  }, []);
+    const cleanup = derivAPI.onConnectionChange((connected) => {
+      setIsConnected(connected);
+      setShowChart(connected && typeof window !== "undefined");
+    });
+
+    // Initial state
+    const initialConnected = derivAPI.isConnected();
+    setIsConnected(initialConnected);
+    setShowChart(initialConnected && typeof window !== "undefined");
+
+    return cleanup;
+  }, [derivAPI]);
 
   const requestAPI = async (request) => {
     return derivAPI.sendRequest(request);
@@ -42,7 +52,7 @@ export const DerivTrading = () => {
     }
   };
 
-  const is_connection_opened = !!derivAPI;
+  const is_connection_opened = isConnected;
   const settings = {
     assetInformation: false, // ui.is_chart_asset_info_visible,
     countdown: true,
@@ -55,6 +65,9 @@ export const DerivTrading = () => {
   return (
     <div className="trading-container">
       <h2>Available Trading Symbols</h2>
+      {!isConnected && (
+        <div className="reconnecting-message">Reconnecting to Deriv API...</div>
+      )}
       <div className="dashboard__chart-wrapper" dir="ltr">
         {showChart && (
           <SmartChart
