@@ -1,7 +1,6 @@
 import DerivAPIBasic from "@deriv/deriv-api/dist/DerivAPIBasic";
 import {
   DerivAPIConfig,
-  TickResponse,
   ActiveSymbolsResponse,
   ContractForSymbolResponse,
   PriceProposalRequest,
@@ -20,11 +19,11 @@ export class DerivAPIService {
 
   constructor(config: DerivAPIConfig) {
     const endpoint = config.endpoint ?? "wss://ws.derivws.com/websockets/v3";
-    this.connection = new WebSocket(endpoint + `?app_id=${config.app_id}`);
+    this.connection = new WebSocket(
+      endpoint + `?app_id=${config.app_id}&l=EN&brand=deriv`
+    );
     this.api = new DerivAPIBasic({
-      connection: new WebSocket(
-        "wss://ws.derivws.com/websockets/v3?app_id=36300&l=EN&brand=deriv"
-      ),
+      connection: this.connection,
     });
     this.activeSubscriptions = new Map();
   }
@@ -34,36 +33,38 @@ export class DerivAPIService {
    * @param symbol - The trading symbol (e.g., "R_100")
    * @returns Promise resolving to tick subscription
    */
-  public async subscribeTicks(
+  public async subscribeStream(
     request: any,
-    callback: (data: TickResponse) => void
+    callback: (data: any) => void,
+    activeSubscribePrefix: string
   ): Promise<void> {
     try {
       // Unsubscribe from any existing tick subscriptions first
-      this.unsubscribeByPrefix("ticks_");
+      this.unsubscribeByPrefix(activeSubscribePrefix + "_");
 
-      const tickStream = await this.api.subscribe(request);
-      
-      const subscription = tickStream.subscribe((response) => {
-        try {
-          // Handle incoming tick data as TickResponse
-          const tickResponse = response as TickResponse;
-          if (tickResponse.error) {
-            throw tickResponse.error;
+      const requestStream = await this.api.subscribe(request);
+
+      const subscription = requestStream.subscribe(
+        (response) => {
+          try {
+            const subscriptionResponse = response as Record<string, any>;
+            callback(subscriptionResponse);
+          } catch (error) {
+            callback({ error });
           }
-
-          callback(tickResponse);
-        } catch (error) {
-          console.error("Error in tick subscription:", error);
-          callback({ error } as TickResponse); // Pass error to callback
+        },
+        (error: any) => {
+          callback(error);
         }
-      });
+      );
 
-      this.activeSubscriptions.set(`ticks_${request.ticks_history}`, {
-        unsubscribe: () => subscription.unsubscribe(),
-      });
+      this.activeSubscriptions.set(
+        `${activeSubscribePrefix}_${request.ticks_history}`,
+        {
+          unsubscribe: () => subscription.unsubscribe(),
+        }
+      );
     } catch (error) {
-      console.error("Error subscribing to ticks:", error);
       throw error;
     }
   }
@@ -79,7 +80,6 @@ export class DerivAPIService {
         product_type: "basic",
       });
     } catch (error) {
-      console.error("Error fetching active symbols:", error);
       throw error;
     }
   }
@@ -87,7 +87,6 @@ export class DerivAPIService {
     try {
       return await this.api.send(request);
     } catch (error) {
-      console.error("Error fetching active symbols:", error);
       throw error;
     }
   }
@@ -105,7 +104,6 @@ export class DerivAPIService {
         contracts_for: symbol,
       });
     } catch (error) {
-      console.error("Error fetching contracts:", error);
       throw error;
     }
   }
@@ -121,7 +119,6 @@ export class DerivAPIService {
     try {
       return await this.api.send(request);
     } catch (error) {
-      console.error("Error getting price proposal:", error);
       throw error;
     }
   }
@@ -137,7 +134,6 @@ export class DerivAPIService {
     try {
       return await this.api.send(request);
     } catch (error) {
-      console.error("Error buying contract:", error);
       throw error;
     }
   }

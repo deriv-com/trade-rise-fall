@@ -1,9 +1,9 @@
 import { useEffect } from "react";
-import DerivTrading from "./pages/trading/DerivTrading";
+import TradingPage from "./pages/trading";
 import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
 import { setSmartChartsPublicPath } from "@deriv/deriv-charts";
-import { getUrlBase } from "./utils/url";
-import { Heading, ThemeProvider } from "@deriv-com/quill-ui";
+import { getUrlBase } from "./common/utils";
+import { ThemeProvider } from "@deriv-com/quill-ui";
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -16,15 +16,15 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <ThemeProvider theme="light">
+    <ThemeProvider theme="light" persistent>
       <div className="app">
         <header className="app-header">
-          <Heading.H2>Deriv Trading App</Heading.H2>
+          <h1>Deriv Trading App</h1>
         </header>
 
         <main className="app-main">
           <ErrorBoundary>
-            <DerivTrading />
+            <TradingPage />
           </ErrorBoundary>
         </main>
       </div>

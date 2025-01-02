@@ -1,124 +1,122 @@
-# Deriv Trading App
+# Options Rise and Fall - Deriv API Example
 
-A React-based trading application using the Deriv API for real-time market data and trading capabilities.
+This project demonstrates how to use the **Deriv API** to implement an **options trading system** for rise and fall contracts.
 
-## Project Structure
+## Features
+- Connect to the Deriv API.
+- Subscribe to market tick updates.
+- Fetch active trading symbols.
+- Retrieve contract details for specific symbols.
+- Request price proposals for contracts.
+- Execute buy orders for options contracts.
+- Disconnect from the API when operations are complete.
 
-```
-src/
-├── components/           # React components
-│   ├── Chart/           # Chart-related components
-│   ├── ErrorBoundary/   # Error handling components
-│   ├── LoadingSpinner/  # Loading state components
-│   └── DerivTrading     # Main trading component
-├── hooks/               # Custom React hooks
-├── services/            # API and external service integrations
-├── types/               # TypeScript type definitions
-└── utils/               # Utility functions
-```
+---
 
-## Key Features
+## Prerequisites
+1. **Node.js** (version 14 or later).
+2. A **Deriv App ID**. You can create one by registering at [Deriv](https://deriv.com).
 
-- Real-time market data visualization
-- TypeScript integration for better type safety
-- Component-based architecture
-- Error boundary implementation
-- Custom hooks for API integration
-- Responsive design
-- Proper loading states
-- Comprehensive error handling
+---
 
-## Recent Improvements
+## Installation
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/mayuran-deriv/trade-rise-fall.git
+   cd trade-rise-fall
+   ```
 
-1. Type Safety & TypeScript Integration
-   - Converted JSX files to TypeScript
-   - Added comprehensive type definitions
-   - Improved type safety across components
-
-2. Component Architecture
-   - Split monolithic components into smaller, focused ones
-   - Implemented proper component hierarchy
-   - Added proper prop types and documentation
-
-3. Error Handling
-   - Added ErrorBoundary component
-   - Improved error states in components
-   - Better error messaging and recovery options
-
-4. State Management
-   - Custom hooks for API integration
-   - Better subscription management
-   - Proper cleanup on unmount
-
-5. UI/UX Improvements
-   - Added loading states with spinner
-   - Improved error state visuals
-   - Better responsive design
-   - Consistent styling with CSS variables
-
-## Setup Instructions
-
-1. Install dependencies:
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Create a .env file with required environment variables:
-   ```
-   DERIV_APP_ID=your_app_id
-   ```
+---
 
-3. Start the development server:
+## Usage
+1. Replace `'YOUR_APP_ID'` with your **Deriv App ID** in the example code.
+2. Run the example script:
    ```bash
-   npm run dev
+   node index.js
    ```
+3. Monitor the console output to see API responses and logs.
 
-## Development Guidelines
+---
 
-1. **TypeScript**
-   - Use proper type definitions
-   - Avoid using 'any' type
-   - Create interfaces for component props
+## Code Overview
 
-2. **Components**
-   - Keep components focused and small
-   - Use proper prop types
-   - Implement error boundaries
-   - Add loading states
+### 1. Initialize API Service
+```javascript
+const derivAPI = new DerivAPIService({
+    app_id: 'YOUR_APP_ID'
+});
+```
+Replace `'YOUR_APP_ID'` with your Deriv application ID.
 
-3. **Styling**
-   - Use SCSS modules
-   - Follow BEM naming convention
-   - Use CSS variables for theming
+### 2. Subscribe to Market Ticks
+```javascript
+await derivAPI.subscribeTicks('R_100');
+```
+Subscribes to live tick updates for the symbol `R_100`.
 
-4. **Error Handling**
-   - Use ErrorBoundary for React errors
-   - Implement proper error states
-   - Provide recovery options
+### 3. Fetch Active Symbols
+```javascript
+const symbols = await derivAPI.getActiveSymbols();
+```
+Retrieves all active trading symbols available.
 
-5. **Documentation**
-   - Add JSDoc comments
-   - Document component props
-   - Keep README updated
+### 4. Get Contracts for a Symbol
+```javascript
+const contracts = await derivAPI.getContractsForSymbol('R_100');
+```
+Fetches available contract types and details for symbol `R_100`.
 
-## Future Improvements
+### 5. Request Price Proposal
+```javascript
+const proposal = await derivAPI.getPriceProposal({
+    proposal: 1,
+    amount: 100,
+    basis: 'stake',
+    contract_type: 'CALL',
+    currency: 'USD',
+    duration: 5,
+    duration_unit: 'min',
+    symbol: 'R_100'
+});
+```
+Requests a price proposal for a **CALL** contract with:
+- **Amount**: $100
+- **Duration**: 5 minutes
+- **Currency**: USD
 
-1. Testing
-   - Add unit tests for components
-   - Add integration tests
-   - Implement E2E testing
+### 6. Buy Contract
+```javascript
+const buyResponse = await derivAPI.buyContract({
+    buy: proposal.proposal!.id,
+    price: 100
+});
+```
+Purchases the proposed contract using the specified price.
 
-2. State Management
-   - Consider implementing Redux/Zustand
-   - Add proper caching
-   - Improve data flow
+### 7. Disconnect
+```javascript
+derivAPI.disconnect();
+```
+Closes the connection to the Deriv API.
 
-3. Performance
-   - Implement React.memo where needed
-   - Add code splitting
-   - Optimize bundle size
+---
 
-4. Features
-   - Add more trading capabilities
-   - Implement user preferences
-   - Add more chart customization options
+## Notes
+- Always ensure proper error handling and logging when working with real-time data and transactions.
+- The example uses a demo account; do not use real funds without thorough testing.
+
+---
+
+## License
+This project is licensed under the MIT License.
+
+---
+
+## Contact
+For questions or support, please email: example@email.com
+
