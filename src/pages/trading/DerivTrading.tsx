@@ -5,7 +5,12 @@ import "@deriv/deriv-charts/dist/smartcharts.css";
 import "./DerivTrading.scss";
 import { TickResponse } from "../../types/deriv-api.types";
 import { DerivAPIService } from "../../services/deriv-api.service";
-import { Heading } from "@deriv-com/quill-ui";
+
+const AccumulatorIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24">
+    <path fill="currentColor" d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>
+  </svg>
+);
 
 interface Subscriptions {
   [key: string]: boolean;
@@ -14,14 +19,32 @@ interface Subscriptions {
 const subscriptions: Subscriptions = {};
 
 const DerivTrading = () => {
-  const barriers: any[] = [];
+  const [selectedRate, setSelectedRate] = useState<number>(3);
+  const [stake, setStake] = useState<number>(50);
+  const [takeProfit, setTakeProfit] = useState<number>(150);
   const [symbol, setSymbol] = useState<string>("1HZ10V");
   const [error, setError] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [chartStatus, setChartStatus] = useState<boolean>(true);
-  const derivAPI: DerivAPIService = getDerivAPI();
   const [chatSubscriptionId, setChatSubscriptionId] = useState<string>("");
+  
+  const barriers: any[] = [];
+  const derivAPI: DerivAPIService = getDerivAPI();
   const chartSubscriptionIdRef = useRef<string>(chatSubscriptionId);
+
+  const handleStakeChange = (value: string) => {
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      setStake(numValue);
+    }
+  };
+
+  const handleTakeProfitChange = (value: string) => {
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      setTakeProfit(numValue);
+    }
+  };
 
   useEffect(() => {
     const initializeAPI = async () => {
@@ -94,12 +117,11 @@ const DerivTrading = () => {
     isHighestLowestMarkerEnabled: false, // TODO: Pending UI,
     language: "en",
     position: "bottom",
-    theme: "dark",
+    theme: "light",
   };
 
   return (
     <div className="trading-container">
-      <Heading.H3 centered>Available Trading Symbols</Heading.H3>
       <div className="dashboard__chart-wrapper" dir="ltr">
         <SmartChart
           id="dbot"
@@ -124,6 +146,82 @@ const DerivTrading = () => {
           isConnectionOpened={is_connection_opened}
           isLive
         />
+      </div>
+      <div className="trading-panel">
+        <div className="info-header">
+          <div className="trade-type">
+            <AccumulatorIcon />
+            <span>Accumulators</span>
+          </div>
+          <a href="#" className="learn-link">Learn about this trade type</a>
+        </div>
+
+        <div className="growth-rate">
+          <div className="label">
+            <h4>Growth rate</h4>
+            <span>ℹ️</span>
+          </div>
+          <div className="rate-buttons">
+            {[1, 2, 3, 4, 5].map((rate) => (
+              <button
+                key={rate}
+                className={selectedRate === rate ? 'active' : ''}
+                onClick={() => setSelectedRate(rate)}
+              >
+                {rate}%
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="input-group">
+          <div className="label">
+            <h4>Stake</h4>
+          </div>
+          <div className="input-wrapper">
+            <button onClick={() => setStake(Math.max(0, stake - 1))}>-</button>
+            <input
+              type="text"
+              value={stake.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              onChange={(e) => handleStakeChange(e.target.value)}
+            />
+            <div className="currency">USD</div>
+            <button onClick={() => setStake(stake + 1)}>+</button>
+          </div>
+        </div>
+
+        <div className="input-group">
+          <div className="label">
+            <h4>Take profit</h4>
+            <span>ℹ️</span>
+          </div>
+          <div className="input-wrapper">
+            <button onClick={() => setTakeProfit(Math.max(0, takeProfit - 1))}>-</button>
+            <input
+              type="text"
+              value={takeProfit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              onChange={(e) => handleTakeProfitChange(e.target.value)}
+            />
+            <div className="currency">USD</div>
+            <button onClick={() => setTakeProfit(takeProfit + 1)}>+</button>
+          </div>
+        </div>
+
+        <div className="info-row">
+          <span>Max. payout</span>
+          <span className="value">{(6000).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD</span>
+        </div>
+        <div className="info-row">
+          <span>Max. ticks</span>
+          <span className="value">75 ticks</span>
+        </div>
+
+        <button className="buy-button">
+          <span>Buy</span>
+          <svg viewBox="0 0 24 24" width="24" height="24">
+            <path fill="currentColor" d="M16.59 7.58L10 14.17l-3.59-3.58L5 12l5 5 8-8z"/>
+          </svg>
+        </button>
       </div>
     </div>
   );
