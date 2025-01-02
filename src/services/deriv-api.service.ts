@@ -38,20 +38,16 @@ export class DerivAPIService {
     request: any,
     callback: (data: TickResponse) => void
   ): Promise<void> {
-    console.log(request, "request");
     try {
       // Unsubscribe from any existing tick subscriptions first
       this.unsubscribeByPrefix("ticks_");
 
       const tickStream = await this.api.subscribe(request);
-      console.log(tickStream, "tickStream");
-
+      
       const subscription = tickStream.subscribe((response) => {
         try {
           // Handle incoming tick data as TickResponse
           const tickResponse = response as TickResponse;
-          console.log(response, "response from subscribe service ");
-
           if (tickResponse.error) {
             throw tickResponse.error;
           }

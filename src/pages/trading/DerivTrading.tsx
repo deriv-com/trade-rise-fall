@@ -51,12 +51,6 @@ const DerivTrading = () => {
   }, [chatSubscriptionId]);
 
   const requestAPI = async (request: any): Promise<any> => {
-    console.log(
-      JSON.stringify(request),
-      request,
-      await derivAPI.sendRequest(request),
-      "requestAPI"
-    );
     return derivAPI.sendRequest(request);
   };
 
@@ -72,17 +66,14 @@ const DerivTrading = () => {
     request: any,
     callback: (response: TickResponse | []) => void
   ): Promise<void> => {
-    console.log(request, "requestsubscribe");
     try {
       derivAPI.subscribeTicks(request, (response: TickResponse) => {
-        console.log(response, "response");
         if ("error" in response) {
           throw response.error;
         }
         callback(response);
       });
     } catch (e: any) {
-      console.log(e, "error");
       // eslint-disable-next-line no-console
       e?.error?.code === "MarketIsClosed" && callback([]); //if market is closed sending a empty array  to resolve
     }
