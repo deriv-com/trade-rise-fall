@@ -30,8 +30,8 @@ export default function DerivTrading() {
   const [duration, setDuration] = useState(1);
   const [stake, setStake] = useState(50);
   const [allowEquals, setAllowEquals] = useState(false);
-  const [activeTab, setActiveTab] = useState('duration');
-  const [activeStakeTab, setActiveStakeTab] = useState('stake');
+  const [selectedDurationTab, setSelectedDurationTab] = useState('duration');
+  const [selectedStakeTab, setSelectedStakeTab] = useState('stake');
   const [growthRate, setGrowthRate] = useState(3);
 
   const derivAPI = getDerivAPI();
@@ -145,42 +145,97 @@ export default function DerivTrading() {
           </div>
         </div>
 
-        <div className="growth-rate-section">
-          <Text size="sm">Growth rate</Text>
-          <div className="rate-buttons">
-            {growthRates.map((rate) => (
+        <div className="tabs-container">
+          <div className="duration-endtime-section">
+            <div className="tab-buttons">
               <button
-                key={rate}
-                className={growthRate === rate ? 'active' : ''}
-                onClick={() => setGrowthRate(rate)}
+                className={`tab-button ${selectedDurationTab === "duration" ? "active" : ""}`}
+                onClick={() => setSelectedDurationTab("duration")}
               >
-                {rate}%
+                Duration
               </button>
-            ))}
-          </div>
-        </div>
+              <button
+                className={`tab-button ${selectedDurationTab === "endtime" ? "active" : ""}`}
+                onClick={() => setSelectedDurationTab("endtime")}
+              >
+                End time
+              </button>
+            </div>
 
-        <div className="stake-section">
-          <Text size="sm">Stake</Text>
-          <div className="stake-input">
-            <button 
-              className="minus-btn"
-              onClick={() => setStake(Math.max(0, stake - 1))}
-            >
-              -
-            </button>
-            <TextField
-              value={stake.toString()}
-              onChange={(e) => handleStakeChange(e.target.value)}
-              className="stake-field"
-            />
-            <Text size="sm" className="currency">USD</Text>
-            <button 
-              className="plus-btn"
-              onClick={() => setStake(stake + 1)}
-            >
-              +
-            </button>
+            {selectedDurationTab === "duration" ? (
+              <>
+                <div className="duration-input">
+                  <Text size="sm">Minutes</Text>
+                  <div className="amount-input">
+                    <button 
+                      className="minus-btn"
+                      onClick={() => setDuration(Math.max(1, duration - 1))}
+                    >
+                      -
+                    </button>
+                    <TextField
+                      value={duration.toString()}
+                      onChange={(e) => handleDurationChange(e.target.value)}
+                      className="duration-field"
+                    />
+                    <button 
+                      className="plus-btn"
+                      onClick={() => setDuration(Math.min(1440, duration + 1))}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <Text size="sm" className="range-info">Range: 1 - 1,440 minutes</Text>
+                </div>
+              </>
+            ) : (
+              <div className="endtime-inputs">
+                <div className="date-input">
+                  <Text size="sm">03 Jan 2025</Text>
+                </div>
+                <div className="time-input">
+                  <Text size="sm">03:20 GMT</Text>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="stake-payout-section">
+            <div className="tab-buttons">
+              <button
+                className={`tab-button ${selectedStakeTab === "stake" ? "active" : ""}`}
+                onClick={() => setSelectedStakeTab("stake")}
+              >
+                Stake
+              </button>
+              <button
+                className={`tab-button ${selectedStakeTab === "payout" ? "active" : ""}`}
+                onClick={() => setSelectedStakeTab("payout")}
+              >
+                Payout
+              </button>
+            </div>
+
+            <div className="amount-input">
+              <button 
+                className="minus-btn"
+                onClick={() => setStake(Math.max(0, stake - 1))}
+              >
+                -
+              </button>
+              <TextField
+                value={stake.toString()}
+                onChange={(e) => handleStakeChange(e.target.value)}
+                className="stake-field"
+              />
+              <Text size="sm" className="currency">USD</Text>
+              <button 
+                className="plus-btn"
+                onClick={() => setStake(stake + 1)}
+              >
+                +
+              </button>
+            </div>
           </div>
         </div>
 
