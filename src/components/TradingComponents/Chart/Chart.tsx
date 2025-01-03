@@ -1,29 +1,16 @@
-import { useEffect, useState } from "react";
-import { getDerivAPI } from "../../services/deriv-api.instance";
 import { SmartChart, ChartTitle } from "@deriv/deriv-charts";
-import { isBrowser } from "../../common/utils";
-import "@deriv/deriv-charts/dist/smartcharts.css";
-import "./DerivTrading.scss";
+import { getDerivAPI } from "../../../services/deriv-api.instance";
+import { ChartSettings, ChartProps } from "../types";
+import "./Chart.scss";
 
-interface ChartSettings {
-  assetInformation: boolean;
-  countdown: boolean;
-  isHighestLowestMarkerEnabled: boolean;
-  language: string;
-  position: string;
-  theme: string;
-}
-
-export default function DerivTrading() {
-  const barriers: any[] = [];
-  const [symbol, setSymbol] = useState<string>("1HZ10V");
-  const [chartStatus, setChartStatus] = useState<boolean>(true);
+export const Chart = ({ 
+  symbol, 
+  chartStatus, 
+  showChart, 
+  onChartStatusChange, 
+  onSymbolChange 
+}: ChartProps) => {
   const derivAPI = getDerivAPI();
-  const [showChart, setShowChart] = useState<boolean>(false);
-
-  useEffect(() => {
-    setShowChart(isBrowser());
-  }, []);
 
   const requestAPI = async (request: any): Promise<any> => {
     return derivAPI.sendRequest(request);
@@ -54,27 +41,28 @@ export default function DerivTrading() {
     }
   };
 
-  const is_connection_opened = !!derivAPI;
   const settings: ChartSettings = {
-    assetInformation: false,
+    assetInformation: true,
     countdown: true,
-    isHighestLowestMarkerEnabled: false,
+    isHighestLowestMarkerEnabled: true,
     language: "en",
     position: "bottom",
-    theme: "dark",
+    theme: "light",
   };
 
+  const barriers: any[] = [];
+  const is_connection_opened = !!derivAPI;
+
   return (
-    <div className="trading-container">
-      <h2>Available Trading Symbols</h2>
-      <div className="dashboard__chart-wrapper" dir="ltr">
+    <div className="chart-section">
+      <div className="chart-container">
         {showChart && (
           <SmartChart
             id="dbot"
             barriers={barriers}
             chartControlsWidgets={null}
-            enabledChartFooter={false}
-            chartStatusListener={(v: boolean) => setChartStatus(!v)}
+            enabledChartFooter={true}
+            chartStatusListener={(v: boolean) => onChartStatusChange(!v)}
             toolbarWidget={() => <></>}
             chartType={"line"}
             isMobile={false}
@@ -87,7 +75,7 @@ export default function DerivTrading() {
             settings={settings}
             symbol={symbol}
             topWidgets={() => (
-              <ChartTitle onChange={(symbol: string) => setSymbol(symbol)} />
+              <ChartTitle onChange={onSymbolChange} />
             )}
             isConnectionOpened={is_connection_opened}
             isLive
@@ -96,4 +84,4 @@ export default function DerivTrading() {
       </div>
     </div>
   );
-}
+};
