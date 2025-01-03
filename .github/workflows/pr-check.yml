@@ -5,11 +5,9 @@ on:
     branches: ["master"]
 
 permissions:
+  id-token: write
   contents: read
   pages: write
-  id-token: write
-  pull-requests: write
-  issues: write
 
 jobs:
   build:
