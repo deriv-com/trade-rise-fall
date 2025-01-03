@@ -1,0 +1,14 @@
+.chart-section {
+  flex: 1;
+  min-height: 600px;
+  position: relative;
+  background: var(--system-light-1-primary, #FFF);
+  border-radius: 8px;
+  overflow: hidden;
+  
+  .chart-container {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+  }
+}

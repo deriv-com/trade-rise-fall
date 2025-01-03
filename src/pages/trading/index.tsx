@@ -1,5 +1,5 @@
 import React from "react";
-import DerivTrading from "../../components/TradingComponents/DerivTrading";
+import DerivTrading from "../../features/DerivTrading";
 
 const TradingPage: React.FC = () => {
   return <DerivTrading />;
