@@ -1,7 +1,7 @@
 name: PR Check
 
 on:
-  pull_request_target:
+  pull_request:
     branches: ["master"]
 
 permissions:
@@ -20,8 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Set up Node
         uses: actions/setup-node@v3
