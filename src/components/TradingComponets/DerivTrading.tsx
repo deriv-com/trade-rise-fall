@@ -1,13 +1,23 @@
-import { useEffect, useState, useRef } from "react";
-import { getDerivAPI } from "../services/deriv-api.instance";
+import { useEffect, useState } from "react";
+import { getDerivAPI } from "../../services/deriv-api.instance";
 import { SmartChart, ChartTitle } from "@deriv/deriv-charts";
+import { isBrowser } from "../../common/utils";
 import "@deriv/deriv-charts/dist/smartcharts.css";
 import "./DerivTrading.scss";
 
-export const DerivTrading = () => {
-  const barriers = [];
-  const [symbol, setSymbol] = useState("1HZ10V");
-  const [chartStatus, setChartStatus] = useState(true);
+interface ChartSettings {
+  assetInformation: boolean;
+  countdown: boolean;
+  isHighestLowestMarkerEnabled: boolean;
+  language: string;
+  position: string;
+  theme: string;
+}
+
+export default function DerivTrading() {
+  const barriers: any[] = [];
+  const [symbol, setSymbol] = useState<string>("1HZ10V");
+  const [chartStatus, setChartStatus] = useState<boolean>(true);
   const derivAPI = getDerivAPI();
   const [showChart, setShowChart] = useState(false);
   const [isConnected, setIsConnected] = useState(derivAPI.isConnected());
@@ -15,26 +25,29 @@ export const DerivTrading = () => {
   useEffect(() => {
     const cleanup = derivAPI.onConnectionChange((connected) => {
       setIsConnected(connected);
-      setShowChart(connected && typeof window !== "undefined");
+      setShowChart(connected && isBrowser());
     });
 
     // Initial state
     const initialConnected = derivAPI.isConnected();
     setIsConnected(initialConnected);
-    setShowChart(initialConnected && typeof window !== "undefined");
+    setShowChart(initialConnected && isBrowser());
 
     return cleanup;
   }, [derivAPI]);
 
-  const requestAPI = async (request) => {
+  const requestAPI = async (request: any): Promise<any> => {
     return derivAPI.sendRequest(request);
   };
 
-  const requestSubscribe = async (request, callback) => {
+  const requestSubscribe = async (
+    request: any,
+    callback: (data: any) => void
+  ): Promise<void> => {
     try {
       derivAPI.subscribeStream(
         request,
-        (response) => {
+        (response: any) => {
           if (response?.error?.code === "MarketIsClosed") {
             return callback([]);
           }
@@ -45,7 +58,7 @@ export const DerivTrading = () => {
         },
         "ticks"
       );
-    } catch (error) {
+    } catch (error: any) {
       if (error?.code === "MarketIsClosed") {
         callback([]);
       }
@@ -53,10 +66,10 @@ export const DerivTrading = () => {
   };
 
   const is_connection_opened = isConnected;
-  const settings = {
-    assetInformation: false, // ui.is_chart_asset_info_visible,
+  const settings: ChartSettings = {
+    assetInformation: false,
     countdown: true,
-    isHighestLowestMarkerEnabled: false, // TODO: Pending UI,
+    isHighestLowestMarkerEnabled: false,
     language: "en",
     position: "bottom",
     theme: "dark",
@@ -75,7 +88,7 @@ export const DerivTrading = () => {
             barriers={barriers}
             chartControlsWidgets={null}
             enabledChartFooter={false}
-            chartStatusListener={(v) => setChartStatus(!v)}
+            chartStatusListener={(v: boolean) => setChartStatus(!v)}
             toolbarWidget={() => <></>}
             chartType={"line"}
             isMobile={false}
@@ -88,7 +101,7 @@ export const DerivTrading = () => {
             settings={settings}
             symbol={symbol}
             topWidgets={() => (
-              <ChartTitle onChange={(symbol) => setSymbol(symbol)} />
+              <ChartTitle onChange={(symbol: string) => setSymbol(symbol)} />
             )}
             isConnectionOpened={is_connection_opened}
             isLive
@@ -97,4 +110,4 @@ export const DerivTrading = () => {
       </div>
     </div>
   );
-};
+}

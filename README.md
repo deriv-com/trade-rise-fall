@@ -22,8 +22,8 @@ This project demonstrates how to use the **Deriv API** to implement an **options
 ## Installation
 1. Clone this repository:
    ```bash
-   git clone https://github.com/mayuran-deriv/options-rise-fall.git
-   cd options-rise-fall
+   git clone https://github.com/mayuran-deriv/trade-rise-fall.git
+   cd trade-rise-fall
    ```
 
 2. Install dependencies:
