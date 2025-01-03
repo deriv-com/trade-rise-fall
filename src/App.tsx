@@ -8,7 +8,7 @@ import { getUrlBase } from "./common/utils";
 const App: React.FC = () => {
   useEffect(() => {
     try {
-      const chartsPath = getUrlBase("/js/smartcharts/");
+      const chartsPath = "/trade-rise-fall/js/smartcharts/";
       setSmartChartsPublicPath(chartsPath);
     } catch (error) {
       console.error("Failed to initialize charts:", error);
