@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { isBrowser } from "../common/utils";
 import { Chart } from "../components/TradingComponents/Chart/Chart";
 import { TradingPanel } from "../components/TradingComponents/TradingPanel/TradingPanel";
+import { DurationTabValue, StakeTabValue } from "../components/TradingComponents/types";
 import "@deriv/deriv-charts/dist/smartcharts.css";
 import "./DerivTrading.scss";
 
@@ -12,8 +13,8 @@ export default function DerivTrading() {
   const [duration, setDuration] = useState(1);
   const [stake, setStake] = useState(50);
   const [allowEquals, setAllowEquals] = useState(false);
-  const [selectedDurationTab, setSelectedDurationTab] = useState('duration');
-  const [selectedStakeTab, setSelectedStakeTab] = useState('stake');
+  const [selectedDurationTab, setSelectedDurationTab] = useState<DurationTabValue>('duration');
+  const [selectedStakeTab, setSelectedStakeTab] = useState<StakeTabValue>('stake');
 
   useEffect(() => {
     setShowChart(isBrowser());

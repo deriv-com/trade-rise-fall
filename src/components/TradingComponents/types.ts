@@ -15,17 +15,20 @@ export interface ChartProps {
   onSymbolChange: (symbol: string) => void;
 }
 
+export type DurationTabValue = 'duration' | 'endtime';
+export type StakeTabValue = 'stake' | 'payout';
+
 export interface TradingPanelProps {
   duration: number;
   stake: number;
   allowEquals: boolean;
-  selectedDurationTab: string;
-  selectedStakeTab: string;
+  selectedDurationTab: DurationTabValue;
+  selectedStakeTab: StakeTabValue;
   onDurationChange: (value: string) => void;
   onStakeChange: (value: string) => void;
   onAllowEqualsChange: (e: React.ChangeEvent<HTMLInputElement> | React.KeyboardEvent<HTMLSpanElement>) => void;
-  onDurationTabChange: (tab: string) => void;
-  onStakeTabChange: (tab: string) => void;
+  onDurationTabChange: (tab: DurationTabValue) => void;
+  onStakeTabChange: (tab: StakeTabValue) => void;
   onDurationIncrement: () => void;
   onDurationDecrement: () => void;
   onStakeIncrement: () => void;

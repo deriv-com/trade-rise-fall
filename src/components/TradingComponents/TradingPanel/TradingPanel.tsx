@@ -6,7 +6,9 @@ import {
   Checkbox,
   TextFieldWithSteppers,
 } from "@deriv-com/quill-ui";
-import { TradingPanelProps } from "../types";
+import { Tab } from "../Tab";
+import { LabelPairedBackwardSmBoldIcon, TradeTypesUpsAndDownsRiseIcon, TradeTypesUpsAndDownsFallIcon, LabelPairedCircleInfoSmBoldIcon } from "@deriv/quill-icons";
+import { TradingPanelProps, DurationTabValue, StakeTabValue } from "../types";
 import "./TradingPanel.scss";
 
 export const TradingPanel = ({
@@ -21,12 +23,22 @@ export const TradingPanel = ({
   onDurationTabChange,
   onStakeTabChange,
 }: TradingPanelProps) => {
+  const durationTabs: Array<{ label: string; value: DurationTabValue }> = [
+    { label: "Duration", value: "duration" },
+    { label: "End time", value: "endtime" }
+  ];
+
+  const stakeTabs: Array<{ label: string; value: StakeTabValue }> = [
+    { label: "Stake", value: "stake" },
+    { label: "Payout", value: "payout" }
+  ];
+
   return (
     <div className="trading-panel">
       <div className="panel-header">
         <div className="header-left">
           <Button variant="secondary" size="sm" onClick={() => {}}>
-            ←
+            <LabelPairedBackwardSmBoldIcon />
           </Button>
           <Text as="span" size="sm" className="learn-link">
             Learn about this trade type
@@ -35,14 +47,10 @@ export const TradingPanel = ({
         <div className="trade-type">
           <div className="trade-icons">
             <div className="rise-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 14l5-5 5 5H7z" />
-              </svg>
+              <TradeTypesUpsAndDownsRiseIcon />
             </div>
             <div className="fall-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 10l5 5 5-5H7z" />
-              </svg>
+              <TradeTypesUpsAndDownsFallIcon />
             </div>
           </div>
           <Text as="span" size="sm" className="text-bold">
@@ -53,32 +61,13 @@ export const TradingPanel = ({
 
       <div className="tabs-container">
         <div className="duration-endtime-section">
-          <div className="tab-buttons">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onDurationTabChange("duration")}
-              className={`tab-button ${
-                selectedDurationTab === "duration" ? "active" : ""
-              }`}
-            >
-              Duration
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onDurationTabChange("endtime")}
-              className={`tab-button ${
-                selectedDurationTab === "endtime" ? "active" : ""
-              }`}
-            >
-              End time
-            </Button>
-          </div>
-
+          <Tab
+            tabs={durationTabs}
+            activeTab={selectedDurationTab}
+            onChange={onDurationTabChange}
+          />
           {selectedDurationTab === "duration" ? (
-            <>
-              <div className="duration-input">
+            <div className="duration-input">
                 <Text as="span" size="sm" className="text-bold">
                   Minutes
                 </Text>
@@ -90,8 +79,7 @@ export const TradingPanel = ({
                 <Text as="span" size="sm" className="text-less-prominent">
                   Range: 1 - 1,440 minutes
                 </Text>
-              </div>
-            </>
+            </div>
           ) : (
             <div className="endtime-inputs">
               <TextField
@@ -111,29 +99,11 @@ export const TradingPanel = ({
         </div>
 
         <div className="stake-payout-section">
-          <div className="tab-buttons">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onStakeTabChange("stake")}
-              className={`tab-button ${
-                selectedStakeTab === "stake" ? "active" : ""
-              }`}
-            >
-              Stake
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => onStakeTabChange("payout")}
-              className={`tab-button ${
-                selectedStakeTab === "payout" ? "active" : ""
-              }`}
-            >
-              Payout
-            </Button>
-          </div>
-
+          <Tab
+            tabs={stakeTabs}
+            activeTab={selectedStakeTab}
+            onChange={onStakeTabChange}
+          />
           <TextFieldWithSteppers
             value={stake.toString()}
             onChange={(e) => onStakeChange(e.target.value)}
@@ -150,12 +120,9 @@ export const TradingPanel = ({
           onChange={onAllowEqualsChange}
           label="Allow equals"
         />
-        <div className="tooltip-wrapper">
-          <Text as="span" size="sm" className="text-less-prominent">
-            ⓘ
-          </Text>
-          <span className="tooltip-text">Allow equals tooltip</span>
-        </div>
+        <Tooltip tooltipContent="Allow equals tooltip">
+          <LabelPairedCircleInfoSmBoldIcon className="text-less-prominent" />
+        </Tooltip>
       </div>
 
       <div className="payout-section">
@@ -168,17 +135,17 @@ export const TradingPanel = ({
               97.71 USD
             </Text>
           </div>
-          <Button variant="secondary" size="sm" className="info-button">
-            ⓘ
-          </Button>
+          <Tooltip tooltipContent="Payout info">
+            <Button variant="secondary" size="sm" className="info-button">
+              <LabelPairedCircleInfoSmBoldIcon />
+            </Button>
+          </Tooltip>
         </div>
 
         <Button variant="primary" size="lg" fullWidth className="rise-button">
           <div className="button-content">
             <div className="left">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 14l5-5 5 5H7z" />
-              </svg>
+              <TradeTypesUpsAndDownsRiseIcon />
               <Text as="span" size="lg" className="text-bold">
                 Rise
               </Text>
@@ -192,9 +159,7 @@ export const TradingPanel = ({
         <Button variant="primary" size="lg" fullWidth className="fall-button">
           <div className="button-content">
             <div className="left">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M7 10l5 5 5-5H7z" />
-              </svg>
+              <TradeTypesUpsAndDownsFallIcon />
               <Text as="span" size="lg" className="text-bold">
                 Fall
               </Text>
