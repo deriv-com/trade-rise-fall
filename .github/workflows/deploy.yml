@@ -38,7 +38,9 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: |
+          npm install --force
+          npm rebuild @rspack/core
 
       - name: Build
         run: npm run build
