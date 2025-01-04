@@ -1,0 +1,161 @@
+.trading-panel {
+  width: 360px;
+  background: var(--system-light-1-primary, #FFF);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .learn-link {
+        color: var(--brand-blue, #85ACB0);
+        cursor: pointer;
+      }
+    }
+
+    .trade-type {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .trade-icons {
+        display: flex;
+        gap: 4px;
+
+        .rise-icon, .fall-icon {
+          width: 16px;
+          height: 16px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 2px;
+        }
+
+        .rise-icon {
+          background: var(--state-success, #4BB4B3);
+        }
+
+        .fall-icon {
+          background: var(--state-danger, #EC3F3F);
+        }
+      }
+    }
+  }
+
+  .tabs-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .duration-endtime-section,
+    .stake-payout-section {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .duration-input {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .endtime-inputs {
+      display: flex;
+      gap: 8px;
+    }
+  }
+
+  .equals-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 0;
+  }
+
+  .payout-section {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .payout-info {
+      background: var(--system-light-2-secondary, #F2F3F4);
+      padding: 16px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .payout-amount {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+    }
+
+    .rise-button,
+    .fall-button {
+      height: 56px;
+      border-radius: 8px;
+      position: relative;
+      overflow: hidden;
+      padding: 0;
+      margin-bottom: 8px;
+
+        .button-content {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+          padding: 0 16px;
+          color: var(--text-colored-background, #FFFFFF);
+          position: relative;
+          z-index: 1;
+
+          .left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            svg {
+              width: 20px;
+              height: 20px;
+              color: var(--text-colored-background, #FFFFFF);
+              fill: currentColor;
+            }
+          }
+        }
+
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: 30%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1));
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 30% 100%);
+      }
+    }
+
+    .rise-button {
+      background: linear-gradient(90deg, #4BB4B3 0%, #5ECFCE 100%);
+    }
+
+    .fall-button {
+      background: linear-gradient(90deg, #EC3F3F 0%, #FF5C5C 100%);
+    }
+  }
+}
