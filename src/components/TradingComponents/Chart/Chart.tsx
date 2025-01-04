@@ -3,12 +3,12 @@ import { getDerivAPI } from "../../../services/deriv-api.instance";
 import { ChartSettings, ChartProps } from "../types";
 import "./Chart.scss";
 
-export const Chart = ({ 
-  symbol, 
-  chartStatus, 
-  showChart, 
-  onChartStatusChange, 
-  onSymbolChange 
+export const Chart = ({
+  symbol,
+  chartStatus,
+  showChart,
+  onChartStatusChange,
+  onSymbolChange,
 }: ChartProps) => {
   const derivAPI = getDerivAPI();
 
@@ -74,9 +74,7 @@ export const Chart = ({
             requestSubscribe={requestSubscribe}
             settings={settings}
             symbol={symbol}
-            topWidgets={() => (
-              <ChartTitle onChange={onSymbolChange} />
-            )}
+            topWidgets={() => <ChartTitle onChange={onSymbolChange} />}
             isConnectionOpened={is_connection_opened}
             isLive
           />

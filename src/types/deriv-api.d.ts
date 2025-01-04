@@ -9,7 +9,10 @@ declare module "@deriv/deriv-api/dist/DerivAPIBasic" {
   }
 
   interface Subscription<T> {
-    subscribe(callback: (response: T) => void): {
+    subscribe(
+      callback: (response: T) => void,
+      error?: (error: any) => void
+    ): {
       unsubscribe(): void;
     };
   }
