@@ -31,16 +31,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up Node
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: 18.20.4
+          node-version: 18.x
           cache: "npm"
 
+      - name: Get cached dependencies
+        id: cache-npm
+        uses: actions/cache/restore@e12d46a63a90f2fae62d114769bbf2a179198b5c
+        with:
+          path: node_modules
+          key: npm-${{ hashFiles('./package-lock.json') }}
+
       - name: Install dependencies
-        run: |
-          npm install --force
-          npm rebuild @rspack/core
+        if: ${{ steps.cache-npm.outputs.cache-hit != 'true' }}
+        run: npm ci
+        shell: bash
 
       - name: Build
         run: npm run build
