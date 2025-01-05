@@ -2,7 +2,10 @@ import { useEffect, useState } from "react";
 import { isBrowser } from "../common/utils";
 import { Chart } from "../components/TradingComponents/Chart/Chart";
 import { TradingPanel } from "../components/TradingComponents/TradingPanel/TradingPanel";
-import { DurationTabValue, StakeTabValue } from "../components/TradingComponents/types";
+import {
+  DurationTabValue,
+  StakeTabValue,
+} from "../components/TradingComponents/types";
 import "@deriv/deriv-charts/dist/smartcharts.css";
 import "./DerivTrading.scss";
 
@@ -11,10 +14,12 @@ export default function DerivTrading() {
   const [chartStatus, setChartStatus] = useState<boolean>(true);
   const [showChart, setShowChart] = useState<boolean>(false);
   const [duration, setDuration] = useState(1);
-  const [stake, setStake] = useState(50);
+  const [price, setPrice] = useState(50);
   const [allowEquals, setAllowEquals] = useState(false);
-  const [selectedDurationTab, setSelectedDurationTab] = useState<DurationTabValue>('duration');
-  const [selectedStakeTab, setSelectedStakeTab] = useState<StakeTabValue>('stake');
+  const [selectedDurationTab, setSelectedDurationTab] =
+    useState<DurationTabValue>("duration");
+  const [selectedStakeTab, setSelectedStakeTab] =
+    useState<StakeTabValue>("stake");
 
   useEffect(() => {
     setShowChart(isBrowser());
@@ -27,14 +32,18 @@ export default function DerivTrading() {
     }
   };
 
-  const handleStakeChange = (value: string) => {
+  const handlePriceChange = (value: string) => {
     const numValue = parseFloat(value);
     if (!isNaN(numValue)) {
-      setStake(numValue);
+      setPrice(numValue);
     }
   };
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement> | React.KeyboardEvent<HTMLSpanElement>) => {
+  const handleCheckboxChange = (
+    e:
+      | React.ChangeEvent<HTMLInputElement>
+      | React.KeyboardEvent<HTMLSpanElement>
+  ) => {
     if (e.target instanceof HTMLInputElement) {
       setAllowEquals(e.target.checked);
     }
@@ -42,7 +51,7 @@ export default function DerivTrading() {
 
   return (
     <div className="trading-container">
-      <Chart 
+      <Chart
         symbol={symbol}
         chartStatus={chartStatus}
         showChart={showChart}
@@ -52,19 +61,19 @@ export default function DerivTrading() {
 
       <TradingPanel
         duration={duration}
-        stake={stake}
+        price={price}
         allowEquals={allowEquals}
         selectedDurationTab={selectedDurationTab}
         selectedStakeTab={selectedStakeTab}
         onDurationChange={handleDurationChange}
-        onStakeChange={handleStakeChange}
+        onPriceChange={handlePriceChange}
         onAllowEqualsChange={handleCheckboxChange}
         onDurationTabChange={setSelectedDurationTab}
         onStakeTabChange={setSelectedStakeTab}
         onDurationIncrement={() => setDuration(Math.min(1440, duration + 1))}
         onDurationDecrement={() => setDuration(Math.max(1, duration - 1))}
-        onStakeIncrement={() => setStake(stake + 1)}
-        onStakeDecrement={() => setStake(Math.max(0, stake - 1))}
+        onPriceIncrement={() => setPrice(price + 1)}
+        onPriceDecrement={() => setPrice(Math.max(0, price - 1))}
       />
     </div>
   );

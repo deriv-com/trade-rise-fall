@@ -7,30 +7,35 @@ import {
   TextFieldWithSteppers,
 } from "@deriv-com/quill-ui";
 import { Tab } from "../Tab";
-import { LabelPairedBackwardSmBoldIcon, TradeTypesUpsAndDownsRiseIcon, TradeTypesUpsAndDownsFallIcon, LabelPairedCircleInfoSmBoldIcon } from "@deriv/quill-icons";
+import {
+  LabelPairedBackwardSmBoldIcon,
+  TradeTypesUpsAndDownsRiseIcon,
+  TradeTypesUpsAndDownsFallIcon,
+  LabelPairedCircleInfoSmBoldIcon,
+} from "@deriv/quill-icons";
 import { TradingPanelProps, DurationTabValue, StakeTabValue } from "../types";
 import "./TradingPanel.scss";
 
 export const TradingPanel = ({
   duration,
-  stake,
+  price,
   allowEquals,
   selectedDurationTab,
   selectedStakeTab,
   onDurationChange,
-  onStakeChange,
+  onPriceChange,
   onAllowEqualsChange,
   onDurationTabChange,
   onStakeTabChange,
 }: TradingPanelProps) => {
   const durationTabs: Array<{ label: string; value: DurationTabValue }> = [
     { label: "Duration", value: "duration" },
-    { label: "End time", value: "endtime" }
+    { label: "End time", value: "endtime" },
   ];
 
   const stakeTabs: Array<{ label: string; value: StakeTabValue }> = [
     { label: "Stake", value: "stake" },
-    { label: "Payout", value: "payout" }
+    { label: "Payout", value: "payout" },
   ];
 
   return (
@@ -68,17 +73,17 @@ export const TradingPanel = ({
           />
           {selectedDurationTab === "duration" ? (
             <div className="duration-input">
-                <Text as="span" size="sm" className="text-bold">
-                  Minutes
-                </Text>
-                <TextFieldWithSteppers
-                  value={duration.toString()}
-                  onChange={(e) => onDurationChange(e.target.value)}
-                  className="duration-field"
-                />
-                <Text as="span" size="sm" className="text-less-prominent">
-                  Range: 1 - 1,440 minutes
-                </Text>
+              <Text as="span" size="sm" className="text-bold">
+                Minutes
+              </Text>
+              <TextFieldWithSteppers
+                value={duration.toString()}
+                onChange={(e) => onDurationChange(e.target.value)}
+                className="duration-field"
+              />
+              <Text as="span" size="sm" className="text-less-prominent">
+                Range: 1 - 1,440 minutes
+              </Text>
             </div>
           ) : (
             <div className="endtime-inputs">
@@ -105,8 +110,19 @@ export const TradingPanel = ({
             onChange={onStakeTabChange}
           />
           <TextFieldWithSteppers
-            value={stake.toString()}
-            onChange={(e) => onStakeChange(e.target.value)}
+            type="text"
+            allowDecimals
+            allowSign={false}
+            regex={/[^0-9.,]/g}
+            inputMode="decimal"
+            shouldRound={false}
+            customType="commaRemoval"
+            decimals={2}
+            textAlignment="center"
+            minusDisabled={Number(price) - 1 <= 0}
+            variant="fill"
+            value={price.toString()}
+            onChange={(e) => onPriceChange(e.target.value)}
             unitRight="USD"
             className="stake-field"
           />
