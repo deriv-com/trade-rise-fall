@@ -3,30 +3,42 @@ import { getDerivAPI } from "../../../services/deriv-api.instance";
 import { SmartChart, ChartTitle } from "@deriv/deriv-charts";
 import { isBrowser } from "../../../common/utils";
 import "@deriv/deriv-charts/dist/smartcharts.css";
-import { ChartSettings, ChartProps } from "../types";
+import { ChartSettings } from "../types";
+import { observer } from "mobx-react-lite";
+import { chartStore } from "../../../stores/ChartStore";
 import { ReconnectingLoader } from "../../ReconnectingLoader/ReconnectingLoader";
 import "./Chart.scss";
 
-export const Chart = ({
-  symbol,
-  chartStatus,
-  showChart,
-  onChartStatusChange,
-  onSymbolChange,
-}: ChartProps) => {
+export const Chart = observer(() => {
+  const {
+    symbol,
+    chartStatus,
+    showChart,
+    setChartStatus,
+    setSymbol,
+    setShowChart,
+  } = chartStore;
   const derivAPI = getDerivAPI();
   const [isConnected, setIsConnected] = useState(derivAPI.isConnected());
 
+  // Initialize chart store
+  useEffect(() => {
+    setSymbol("1HZ10V");
+    setChartStatus(true);
+    setShowChart(isBrowser());
+  }, []);
+
+  // Handle connection changes
   useEffect(() => {
     const cleanup = derivAPI.onConnectionChange((connected: boolean) => {
       setIsConnected(connected);
-      onChartStatusChange(connected && isBrowser());
+      setChartStatus(connected && isBrowser());
     });
 
     // Initial state
     const initialConnected = derivAPI.isConnected();
     setIsConnected(initialConnected);
-    onChartStatusChange(initialConnected && isBrowser());
+    setChartStatus(initialConnected && isBrowser());
 
     return cleanup;
   }, [derivAPI]);
@@ -82,7 +94,7 @@ export const Chart = ({
             barriers={barriers}
             chartControlsWidgets={null}
             enabledChartFooter={true}
-            chartStatusListener={(v: boolean) => onChartStatusChange(!v)}
+            chartStatusListener={(v: boolean) => setChartStatus(!v)}
             toolbarWidget={() => <></>}
             chartType={"line"}
             isMobile={false}
@@ -94,7 +106,7 @@ export const Chart = ({
             requestSubscribe={requestSubscribe}
             settings={settings}
             symbol={symbol}
-            topWidgets={() => <ChartTitle onChange={onSymbolChange} />}
+            topWidgets={() => <ChartTitle onChange={setSymbol} />}
             isConnectionOpened={is_connection_opened}
             isLive
           />
@@ -102,4 +114,4 @@ export const Chart = ({
       </div>
     </div>
   );
-};
+});
