@@ -13,21 +13,25 @@ import {
   TradeTypesUpsAndDownsFallIcon,
   LabelPairedCircleInfoSmBoldIcon,
 } from "@deriv/quill-icons";
-import { TradingPanelProps, DurationTabValue, StakeTabValue } from "../types";
+import { DurationTabValue, StakeTabValue } from "../types";
+import { observer } from "mobx-react-lite";
+import { tradingPanelStore } from "../../../stores/TradingPanelStore";
 import "./TradingPanel.scss";
 
-export const TradingPanel = ({
-  duration,
-  price,
-  allowEquals,
-  selectedDurationTab,
-  selectedStakeTab,
-  onDurationChange,
-  onPriceChange,
-  onAllowEqualsChange,
-  onDurationTabChange,
-  onStakeTabChange,
-}: TradingPanelProps) => {
+export const TradingPanel = observer(() => {
+  const {
+    duration,
+    price,
+    allowEquals,
+    selectedDurationTab,
+    selectedStakeTab,
+    setDuration,
+    setPrice,
+    setAllowEquals,
+    setSelectedDurationTab,
+    setSelectedStakeTab,
+  } = tradingPanelStore;
+
   const durationTabs: Array<{ label: string; value: DurationTabValue }> = [
     { label: "Duration", value: "duration" },
     { label: "End time", value: "endtime" },
@@ -69,7 +73,7 @@ export const TradingPanel = ({
           <Tab
             tabs={durationTabs}
             activeTab={selectedDurationTab}
-            onChange={onDurationTabChange}
+            onChange={setSelectedDurationTab}
           />
           {selectedDurationTab === "duration" ? (
             <div className="duration-input">
@@ -78,7 +82,7 @@ export const TradingPanel = ({
               </Text>
               <TextFieldWithSteppers
                 value={duration.toString()}
-                onChange={(e) => onDurationChange(e.target.value)}
+                onChange={(e) => setDuration(e.target.value)}
                 className="duration-field"
               />
               <Text as="span" size="sm" className="text-less-prominent">
@@ -107,7 +111,7 @@ export const TradingPanel = ({
           <Tab
             tabs={stakeTabs}
             activeTab={selectedStakeTab}
-            onChange={onStakeTabChange}
+            onChange={setSelectedStakeTab}
           />
           <TextFieldWithSteppers
             type="text"
@@ -121,8 +125,8 @@ export const TradingPanel = ({
             textAlignment="center"
             minusDisabled={Number(price) - 1 <= 0}
             variant="fill"
-            value={price.toString()}
-            onChange={(e) => onPriceChange(e.target.value)}
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
             unitRight="USD"
             className="stake-field"
           />
@@ -133,7 +137,9 @@ export const TradingPanel = ({
         <Checkbox
           name="allow-equals"
           checked={allowEquals}
-          onChange={onAllowEqualsChange}
+          onChange={(e) =>
+            setAllowEquals((e.target as HTMLInputElement).checked)
+          }
           label="Allow equals"
         />
         <Tooltip tooltipContent="Allow equals tooltip">
@@ -188,4 +194,4 @@ export const TradingPanel = ({
       </div>
     </div>
   );
-};
+});
