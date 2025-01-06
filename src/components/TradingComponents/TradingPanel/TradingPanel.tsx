@@ -16,6 +16,8 @@ import {
 import { DurationTabValue, StakeTabValue } from "../types";
 import { observer } from "mobx-react-lite";
 import { tradingPanelStore } from "../../../stores/TradingPanelStore";
+import { chartStore } from "../../../stores/ChartStore";
+import { usePriceProposal } from "../../../hooks/usePriceProposal";
 import "./TradingPanel.scss";
 
 export const TradingPanel = observer(() => {
@@ -32,6 +34,13 @@ export const TradingPanel = observer(() => {
     setSelectedStakeTab,
   } = tradingPanelStore;
 
+  const { proposal, clearProposal } = usePriceProposal(
+    price,
+    duration,
+    selectedStakeTab,
+    chartStore.symbol
+  );
+
   const durationTabs: Array<{ label: string; value: DurationTabValue }> = [
     { label: "Duration", value: "duration" },
     { label: "End time", value: "endtime" },
@@ -41,6 +50,19 @@ export const TradingPanel = observer(() => {
     { label: "Stake", value: "stake" },
     { label: "Payout", value: "payout" },
   ];
+
+  const getDisplayAmount = () => {
+    if (!proposal) return "0.00";
+
+    if (selectedStakeTab === "stake") {
+      return proposal.payout?.toFixed(2) ?? "0.00";
+    }
+    return proposal.ask_price?.toFixed(2) ?? "0.00";
+  };
+
+  const getDisplayLabel = () => {
+    return selectedStakeTab === "stake" ? "Payout" : "Stake";
+  };
 
   return (
     <div className="trading-panel">
@@ -115,13 +137,11 @@ export const TradingPanel = observer(() => {
           />
           <TextFieldWithSteppers
             type="text"
-            allowDecimals
+            allowDecimals={false}
             allowSign={false}
-            regex={/[^0-9.,]/g}
-            inputMode="decimal"
-            shouldRound={false}
-            customType="commaRemoval"
-            decimals={2}
+            regex={/[^0-9]|^$/g}
+            inputMode="numeric"
+            shouldRound={true}
             textAlignment="center"
             minusDisabled={Number(price) - 1 <= 0}
             variant="fill"
@@ -151,10 +171,10 @@ export const TradingPanel = observer(() => {
         <div className="payout-info">
           <div className="payout-amount">
             <Text as="span" size="sm" className="text-less-prominent">
-              Payout
+              {getDisplayLabel()}
             </Text>
             <Text as="span" size="lg" className="text-bold">
-              97.71 USD
+              {getDisplayAmount()} USD
             </Text>
           </div>
           <Tooltip tooltipContent="Payout info">
@@ -173,7 +193,14 @@ export const TradingPanel = observer(() => {
               </Text>
             </div>
             <Text as="span" size="lg" className="text-bold">
-              95.42%
+              {proposal
+                ? (
+                    ((proposal.payout - proposal.ask_price) /
+                      proposal.ask_price) *
+                    100
+                  ).toFixed(2)
+                : "0.00"}
+              %
             </Text>
           </div>
         </Button>
@@ -187,7 +214,14 @@ export const TradingPanel = observer(() => {
               </Text>
             </div>
             <Text as="span" size="lg" className="text-bold">
-              95.20%
+              {proposal
+                ? (
+                    ((proposal.payout - proposal.ask_price) /
+                      proposal.ask_price) *
+                    100
+                  ).toFixed(2)
+                : "0.00"}
+              %
             </Text>
           </div>
         </Button>
