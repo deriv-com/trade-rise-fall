@@ -7,6 +7,7 @@ import Header from './components/Header/Header';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 import { authStore } from './stores/AuthStore';
+import { authService } from './services/auth.service';
 
 const Homepage = React.lazy(() => import('./pages/homepage'));
 const DerivTrading = React.lazy(() => import('./pages/trading'));
@@ -61,6 +62,24 @@ const AppContent: React.FC = () => {
 };
 
 const App: React.FC = observer(() => {
+  const [isInitialized, setIsInitialized] = React.useState(false);
+
+  useEffect(() => {
+    // Initialize auth store
+    authStore.initialize().then(() => {
+      setIsInitialized(true);
+    });
+
+    return () => {
+      // Cleanup auth service when app unmounts
+      authService.cleanup();
+    };
+  }, []);
+
+  if (!isInitialized) {
+    return <LoadingSpinner />;
+  }
+
   return (
     <ErrorBoundary>
       <ThemeProvider theme='light' persistent>

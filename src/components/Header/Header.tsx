@@ -7,7 +7,11 @@ import { authStore } from "../../stores/AuthStore";
 import "./Header.scss";
 
 const Header = observer(function Header() {
-  const { isAuthenticated, login, logout } = authStore;
+  const { isAuthenticated, isInitializing, login, logout } = authStore;
+
+  if (isInitializing) {
+    return null;
+  }
 
   return (
     <nav className="header">

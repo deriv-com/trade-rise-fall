@@ -8,17 +8,18 @@ export class AuthStore {
 
   constructor() {
     makeAutoObservable(this);
-    this.initialize();
   }
 
-  private async initialize() {
+  public async initialize() {
     try {
       const token = authService.getStoredToken();
       if (token) {
-        await this.handleAuthCallback(token);
+        const success = await authService.validateToken(token);
+        this.setAuthenticated(success);
       }
     } catch (error) {
       console.error('Auth initialization error:', error);
+      this.setAuthenticated(false);
     } finally {
       this.setInitializing(false);
     }
