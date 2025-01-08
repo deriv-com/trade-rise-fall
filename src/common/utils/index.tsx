@@ -1,3 +1,5 @@
+import { authStore } from "../../stores/AuthStore";
+
 /**
  * Check if code is running in a browser environment
  * @returns {boolean} True if running in browser, false otherwise
@@ -21,8 +23,7 @@ export const getChartUrl = (): string => {
 };
 
 export const isLogged = (): boolean => {
-  const token = localStorage.getItem("auth_token");
-  return !!token;
+  return authStore.isAuthenticated;
 };
 
 export const getUrlBase = (path: string = ""): string => {
