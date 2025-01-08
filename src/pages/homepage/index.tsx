@@ -1,14 +1,10 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button, Heading } from '@deriv-com/quill-ui';
+import { useAuth } from '../../contexts/AuthContext';
 import './homepage.scss';
 
 const Homepage: React.FC = () => {
-  const navigate = useNavigate();
-
-  const handleGetStarted = (): void => {
-    navigate('/login');
-  };
+  const { login } = useAuth();
 
   return (
     <div className="homepage">
@@ -22,7 +18,7 @@ const Homepage: React.FC = () => {
         </Heading.H3>
         
         <Button
-          onClick={handleGetStarted}
+          onClick={login}
           variant="primary"
           size="lg"
         >

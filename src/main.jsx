@@ -1,16 +1,30 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
 import { initializeDerivAPI } from "./services/deriv-api.instance.ts";
+import { authService } from "./services/auth.service.ts";
 
-// Initialize Deriv API once before render
-initializeDerivAPI({
-  app_id: process.env.REACT_APP_WS_PORT, // Default Deriv app_id for testing. Replace with your actual app_id in production
-  endpoint: process.env.REACT_APP_WS_URL,
-});
+const initializeApp = async () => {
+  // Initialize Deriv API once before render
+  const app_id = process.env.REACT_APP_WS_PORT;
+  const endpoint = process.env.REACT_APP_WS_URL;
 
-// Set SmartCharts public path
+  if (!app_id || !endpoint) {
+    console.error('Required environment variables are not set');
+    return;
+  }
 
-const rootElement = document.getElementById("root");
-if (rootElement) {
-  createRoot(rootElement).render(<App />);
-}
+  initializeDerivAPI({
+    app_id,
+    endpoint,
+  });
+
+  // Initialize auth service with existing token if available
+  await authService.initialize();
+
+  const rootElement = document.getElementById("root");
+  if (rootElement) {
+    createRoot(rootElement).render(<App />);
+  }
+};
+
+initializeApp().catch(console.error);
