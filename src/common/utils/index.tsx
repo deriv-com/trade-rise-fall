@@ -20,6 +20,11 @@ export const getChartUrl = (): string => {
   return `${baseUrl}/js/smartcharts/`;
 };
 
+export const isLogged = (): boolean => {
+  const token = localStorage.getItem("auth_token");
+  return !!token;
+};
+
 export const getUrlBase = (path: string = ""): string => {
   const l = window.location;
 
