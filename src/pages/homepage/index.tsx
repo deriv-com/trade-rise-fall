@@ -1,10 +1,12 @@
 import React from "react";
 import { Button, Heading } from "@deriv-com/quill-ui";
+import { useNavigate } from "react-router-dom";
 import { authStore } from "../../stores/AuthStore";
 import { isLogged } from "../../common/utils";
 import "./homepage.scss";
 
 const Homepage: React.FC = () => {
+  const navigate = useNavigate();
   return (
     <div className="homepage">
       <div className="homepage__content">
@@ -19,7 +21,7 @@ const Homepage: React.FC = () => {
         <Button
           onClick={() => {
             if (isLogged()) {
-              window.location.href = "/dashboard";
+              navigate("/dashboard");
             } else {
               authStore.login();
             }
