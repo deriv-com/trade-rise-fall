@@ -32,9 +32,11 @@ export const TradingPanel = observer(() => {
     setAllowEquals,
     setSelectedDurationTab,
     setSelectedStakeTab,
+    durationError,
+    priceError,
   } = tradingPanelStore;
 
-  const { proposal, clearProposal } = usePriceProposal(
+  const { proposal, clearProposal, isLoading } = usePriceProposal(
     price,
     duration,
     selectedStakeTab,
@@ -51,18 +53,27 @@ export const TradingPanel = observer(() => {
     { label: "Payout", value: "payout" },
   ];
 
-  const getDisplayAmount = () => {
-    if (!proposal) return "0.00";
+  const getAmount = (type: "rise" | "fall") => {
+    const currentProposal = proposal[type];
+    if (!currentProposal) return "0.00";
 
     if (selectedStakeTab === "stake") {
-      return proposal.payout?.toFixed(2) ?? "0.00";
+      return currentProposal.payout?.toFixed(2) ?? "0.00";
     }
-    return proposal.ask_price?.toFixed(2) ?? "0.00";
+    return currentProposal.ask_price?.toFixed(2) ?? "0.00";
   };
 
-  const getDisplayLabel = () => {
-    return selectedStakeTab === "stake" ? "Payout" : "Stake";
+  const getPercentage = (type: "rise" | "fall") => {
+    const currentProposal = proposal[type];
+    if (!currentProposal) return "0.00";
+
+    const { payout, ask_price } = currentProposal;
+    if (!payout || !ask_price) return "0.00";
+
+    return (((payout - ask_price) / ask_price) * 100).toFixed(2);
   };
+
+  const label = selectedStakeTab === "stake" ? "Payout" : "Stake";
 
   return (
     <div className="trading-panel">
@@ -103,9 +114,20 @@ export const TradingPanel = observer(() => {
                 Minutes
               </Text>
               <TextFieldWithSteppers
+                type="text"
                 value={duration.toString()}
                 onChange={(e) => setDuration(e.target.value)}
                 className="duration-field"
+                allowDecimals={false}
+                allowSign={false}
+                regex={/[^0-9]|^$/g}
+                inputMode="numeric"
+                shouldRound={true}
+                textAlignment="center"
+                minusDisabled={Number(duration) - 1 <= 0}
+                variant="fill"
+                status={durationError ? "error" : "success"}
+                message={durationError}
               />
               <Text as="span" size="sm" className="text-less-prominent">
                 Range: 1 - 1,440 minutes
@@ -149,6 +171,8 @@ export const TradingPanel = observer(() => {
             onChange={(e) => setPrice(e.target.value)}
             unitRight="USD"
             className="stake-field"
+            status={priceError ? "error" : "success"}
+            message={priceError}
           />
         </div>
       </div>
@@ -168,22 +192,6 @@ export const TradingPanel = observer(() => {
       </div>
 
       <div className="payout-section">
-        <div className="payout-info">
-          <div className="payout-amount">
-            <Text as="span" size="sm" className="text-less-prominent">
-              {getDisplayLabel()}
-            </Text>
-            <Text as="span" size="lg" className="text-bold">
-              {getDisplayAmount()} USD
-            </Text>
-          </div>
-          <Tooltip tooltipContent="Payout info">
-            <Button variant="secondary" size="sm" className="info-button">
-              <LabelPairedCircleInfoSmBoldIcon />
-            </Button>
-          </Tooltip>
-        </div>
-
         <Button variant="primary" size="lg" fullWidth className="rise-button">
           <div className="button-content">
             <div className="left">
@@ -193,17 +201,25 @@ export const TradingPanel = observer(() => {
               </Text>
             </div>
             <Text as="span" size="lg" className="text-bold">
-              {proposal
-                ? (
-                    ((proposal.payout - proposal.ask_price) /
-                      proposal.ask_price) *
-                    100
-                  ).toFixed(2)
-                : "0.00"}
-              %
+              {getPercentage("rise")}%
             </Text>
           </div>
         </Button>
+        <div className="payout-info-row">
+          {!isLoading.rise && (
+            <>
+              <Text as="span" size="sm" className="text-bold">
+                {label}
+              </Text>
+              <Text as="span" size="lg" className="text-bold">
+                {getAmount("rise")} USD
+              </Text>
+              <Tooltip tooltipContent={`${label} info`}>
+                <LabelPairedCircleInfoSmBoldIcon className="info-icon" />
+              </Tooltip>
+            </>
+          )}
+        </div>
 
         <Button variant="primary" size="lg" fullWidth className="fall-button">
           <div className="button-content">
@@ -214,17 +230,25 @@ export const TradingPanel = observer(() => {
               </Text>
             </div>
             <Text as="span" size="lg" className="text-bold">
-              {proposal
-                ? (
-                    ((proposal.payout - proposal.ask_price) /
-                      proposal.ask_price) *
-                    100
-                  ).toFixed(2)
-                : "0.00"}
-              %
+              {getPercentage("fall")}%
             </Text>
           </div>
         </Button>
+        <div className="payout-info-row">
+          {!isLoading.fall && (
+            <>
+              <Text as="span" size="sm" className="text-bold">
+                {label}
+              </Text>
+              <Text as="span" size="lg" className="text-bold">
+                {getAmount("fall")} USD
+              </Text>
+              <Tooltip tooltipContent={`${label} info`}>
+                <LabelPairedCircleInfoSmBoldIcon className="info-icon" />
+              </Tooltip>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
