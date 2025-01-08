@@ -20,7 +20,8 @@ env:
   REACT_APP_WS_PORT: ${{ secrets.REACT_APP_WS_PORT }}
   REACT_APP_WS_URL: ${{ secrets.REACT_APP_WS_URL }}
   REACT_CURRENT_ENVIRONMENT: ${{ secrets.REACT_CURRENT_ENVIRONMENT }}
-
+  REACT_OAUTH_URL: ${{ secrets.REACT_OAUTH_URL }}
+  
 jobs:
   deploy:
     environment:
