@@ -1,23 +1,18 @@
-import {
-  Button,
-  TextField,
-  Text,
-  Tooltip,
-  Checkbox,
-  TextFieldWithSteppers,
-} from "@deriv-com/quill-ui";
-import { Tab } from "../Tab";
+import { Button, Text, Tooltip, Checkbox } from "@deriv-com/quill-ui";
 import {
   LabelPairedBackwardSmBoldIcon,
   TradeTypesUpsAndDownsRiseIcon,
   TradeTypesUpsAndDownsFallIcon,
   LabelPairedCircleInfoSmBoldIcon,
 } from "@deriv/quill-icons";
-import { DurationTabValue, StakeTabValue } from "../types";
 import { observer } from "mobx-react-lite";
 import { tradingPanelStore } from "../../../stores/TradingPanelStore";
 import { chartStore } from "../../../stores/ChartStore";
 import { usePriceProposal } from "../../../hooks/usePriceProposal";
+import { DurationSection } from "../DurationSection/DurationSection";
+import { StakeSection } from "../StakeSection/StakeSection";
+import { TradeButton } from "../TradeButton/TradeButton";
+import { PayoutInfo } from "../PayoutInfo/PayoutInfo";
 import "./TradingPanel.scss";
 
 export const TradingPanel = observer(() => {
@@ -40,20 +35,12 @@ export const TradingPanel = observer(() => {
     price,
     duration,
     selectedStakeTab,
-    chartStore.symbol
+    chartStore.symbol,
+    durationError,
+    priceError
   );
 
-  const durationTabs: Array<{ label: string; value: DurationTabValue }> = [
-    { label: "Duration", value: "duration" },
-    { label: "End time", value: "endtime" },
-  ];
-
-  const stakeTabs: Array<{ label: string; value: StakeTabValue }> = [
-    { label: "Stake", value: "stake" },
-    { label: "Payout", value: "payout" },
-  ];
-
-  const getAmount = (type: "rise" | "fall") => {
+  const getAmount = (type: "rise" | "fall"): string => {
     const currentProposal = proposal[type];
     if (!currentProposal) return "0.00";
 
@@ -63,7 +50,7 @@ export const TradingPanel = observer(() => {
     return currentProposal.ask_price?.toFixed(2) ?? "0.00";
   };
 
-  const getPercentage = (type: "rise" | "fall") => {
+  const getPercentage = (type: "rise" | "fall"): string => {
     const currentProposal = proposal[type];
     if (!currentProposal) return "0.00";
 
@@ -102,79 +89,20 @@ export const TradingPanel = observer(() => {
       </div>
 
       <div className="tabs-container">
-        <div className="duration-endtime-section">
-          <Tab
-            tabs={durationTabs}
-            activeTab={selectedDurationTab}
-            onChange={setSelectedDurationTab}
-          />
-          {selectedDurationTab === "duration" ? (
-            <div className="duration-input">
-              <Text as="span" size="sm" className="text-bold">
-                Minutes
-              </Text>
-              <TextFieldWithSteppers
-                type="text"
-                value={duration.toString()}
-                onChange={(e) => setDuration(e.target.value)}
-                className="duration-field"
-                allowDecimals={false}
-                allowSign={false}
-                regex={/[^0-9]|^$/g}
-                inputMode="numeric"
-                shouldRound={true}
-                textAlignment="center"
-                minusDisabled={Number(duration) - 1 <= 0}
-                variant="fill"
-                status={durationError ? "error" : "success"}
-                message={durationError}
-              />
-              <Text as="span" size="sm" className="text-less-prominent">
-                Range: 1 - 1,440 minutes
-              </Text>
-            </div>
-          ) : (
-            <div className="endtime-inputs">
-              <TextField
-                type="text"
-                value="03 Jan 2025"
-                readOnly
-                className="date-input"
-              />
-              <TextField
-                type="text"
-                value="03:20 GMT"
-                readOnly
-                className="time-input"
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="stake-payout-section">
-          <Tab
-            tabs={stakeTabs}
-            activeTab={selectedStakeTab}
-            onChange={setSelectedStakeTab}
-          />
-          <TextFieldWithSteppers
-            type="text"
-            allowDecimals={false}
-            allowSign={false}
-            regex={/[^0-9]|^$/g}
-            inputMode="numeric"
-            shouldRound={true}
-            textAlignment="center"
-            minusDisabled={Number(price) - 1 <= 0}
-            variant="fill"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            unitRight="USD"
-            className="stake-field"
-            status={priceError ? "error" : "success"}
-            message={priceError}
-          />
-        </div>
+        <DurationSection
+          duration={duration}
+          selectedDurationTab={selectedDurationTab}
+          durationError={durationError ?? ""}
+          setDuration={setDuration}
+          setSelectedDurationTab={setSelectedDurationTab}
+        />
+        <StakeSection
+          price={price}
+          selectedStakeTab={selectedStakeTab}
+          priceError={priceError ?? ""}
+          setPrice={setPrice}
+          setSelectedStakeTab={setSelectedStakeTab}
+        />
       </div>
 
       <div className="equals-section">
@@ -192,63 +120,21 @@ export const TradingPanel = observer(() => {
       </div>
 
       <div className="payout-section">
-        <Button variant="primary" size="lg" fullWidth className="rise-button">
-          <div className="button-content">
-            <div className="left">
-              <TradeTypesUpsAndDownsRiseIcon />
-              <Text as="span" size="lg" className="text-bold">
-                Rise
-              </Text>
-            </div>
-            <Text as="span" size="lg" className="text-bold">
-              {getPercentage("rise")}%
-            </Text>
-          </div>
-        </Button>
-        <div className="payout-info-row">
-          {!isLoading.rise && (
-            <>
-              <Text as="span" size="sm" className="text-bold">
-                {label}
-              </Text>
-              <Text as="span" size="lg" className="text-bold">
-                {getAmount("rise")} USD
-              </Text>
-              <Tooltip tooltipContent={`${label} info`}>
-                <LabelPairedCircleInfoSmBoldIcon className="info-icon" />
-              </Tooltip>
-            </>
-          )}
-        </div>
+        <TradeButton type="rise" percentage={getPercentage("rise")} />
+        <PayoutInfo
+          type="rise"
+          label={label}
+          amount={getAmount("rise")}
+          isLoading={isLoading.rise}
+        />
 
-        <Button variant="primary" size="lg" fullWidth className="fall-button">
-          <div className="button-content">
-            <div className="left">
-              <TradeTypesUpsAndDownsFallIcon />
-              <Text as="span" size="lg" className="text-bold">
-                Fall
-              </Text>
-            </div>
-            <Text as="span" size="lg" className="text-bold">
-              {getPercentage("fall")}%
-            </Text>
-          </div>
-        </Button>
-        <div className="payout-info-row">
-          {!isLoading.fall && (
-            <>
-              <Text as="span" size="sm" className="text-bold">
-                {label}
-              </Text>
-              <Text as="span" size="lg" className="text-bold">
-                {getAmount("fall")} USD
-              </Text>
-              <Tooltip tooltipContent={`${label} info`}>
-                <LabelPairedCircleInfoSmBoldIcon className="info-icon" />
-              </Tooltip>
-            </>
-          )}
-        </div>
+        <TradeButton type="fall" percentage={getPercentage("fall")} />
+        <PayoutInfo
+          type="fall"
+          label={label}
+          amount={getAmount("fall")}
+          isLoading={isLoading.fall}
+        />
       </div>
     </div>
   );

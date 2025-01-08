@@ -17,7 +17,9 @@ export const usePriceProposal = (
   price: string,
   duration: number,
   basis: string,
-  symbol: string
+  symbol: string,
+  durationError: string,
+  priceError: string
 ) => {
   const [proposal, setProposal] = useState<ProposalState>({});
   const [isLoading, setIsLoading] = useState<LoadingState>({
@@ -49,67 +51,55 @@ export const usePriceProposal = (
         return;
       }
 
-      try {
-        await derivAPI.subscribeStream(
-          {
-            proposal: 1,
-            subscribe: 1,
-            amount: numPrice,
-            basis: data.basis,
-            contract_type: "CALL",
-            currency: "USD",
-            duration: data.duration,
-            duration_unit: "m",
-            symbol: data.symbol,
-          },
-          (response: any) => {
-            setIsLoading((prev) => ({ ...prev, rise: false }));
-            if (response.error) {
-              console.error("Rise proposal error:", response.error);
-            } else if (response.proposal) {
-              setProposal((prev) => ({ ...prev, rise: response.proposal }));
-            }
-          },
-          "PROPOSAL_RISE"
-        );
-      } catch (err) {
-        console.error("Rise subscription error:", err);
-        setIsLoading((prev) => ({ ...prev, rise: false }));
-      }
+      const subscribeToProposal = async (type: "rise" | "fall") => {
+        const config = {
+          proposal: 1,
+          subscribe: 1,
+          amount: numPrice,
+          basis: data.basis,
+          contract_type: type === "rise" ? "CALL" : "PUT",
+          currency: "USD",
+          duration: data.duration,
+          duration_unit: "m",
+          symbol: data.symbol,
+        };
 
-      try {
-        await derivAPI.subscribeStream(
-          {
-            proposal: 1,
-            subscribe: 1,
-            amount: numPrice,
-            basis: data.basis,
-            contract_type: "PUT",
-            currency: "USD",
-            duration: data.duration,
-            duration_unit: "m",
-            symbol: data.symbol,
-          },
-          (response: any) => {
-            setIsLoading((prev) => ({ ...prev, fall: false }));
-            if (response.error) {
-              console.error("Fall proposal error:", response.error);
-            } else if (response.proposal) {
-              setProposal((prev) => ({ ...prev, fall: response.proposal }));
-            }
-          },
-          "PROPOSAL_FALL"
-        );
-      } catch (err) {
-        console.error("Fall subscription error:", err);
-        setIsLoading((prev) => ({ ...prev, fall: false }));
-      }
+        try {
+          await derivAPI.subscribeStream(
+            config,
+            (response: any) => {
+              setIsLoading((prev) => ({ ...prev, [type]: false }));
+              if (response.error) {
+                console.error(`${type} proposal error:`, response.error);
+              } else if (response.proposal) {
+                setProposal((prev) => ({ ...prev, [type]: response.proposal }));
+              }
+            },
+            `PROPOSAL_${type.toUpperCase()}`
+          );
+        } catch (err) {
+          console.error(`${type} subscription error:`, err);
+          setIsLoading((prev) => ({ ...prev, [type]: false }));
+        }
+      };
+
+      await Promise.all([
+        subscribeToProposal("rise"),
+        subscribeToProposal("fall"),
+      ]);
     };
 
     setProposal({});
     setIsLoading({ rise: false, fall: false });
 
-    if (debouncedPrice && duration && basis && symbol) {
+    if (
+      debouncedPrice &&
+      duration &&
+      basis &&
+      symbol &&
+      !durationError &&
+      !priceError
+    ) {
       handleProposal();
     }
   }, [debouncedPrice, debouncedDuration, basis, symbol, derivAPI]);
