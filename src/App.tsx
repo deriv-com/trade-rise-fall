@@ -4,6 +4,7 @@ import { ThemeProvider } from '@deriv-com/quill-ui';
 import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner';
 import Header from './components/Header/Header';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 
 const Homepage = React.lazy(() => import('./pages/homepage'));
 const DerivTrading = React.lazy(() => import('./pages/trading'));
@@ -47,7 +48,11 @@ const AppContent: React.FC = () => {
         />
         <Route 
           path="/dashboard" 
-          element={<DerivTrading />} 
+          element={
+            <ProtectedRoute>
+              <DerivTrading />
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </Suspense>
