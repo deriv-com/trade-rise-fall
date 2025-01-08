@@ -83,7 +83,7 @@ const App: React.FC = observer(() => {
   return (
     <ErrorBoundary>
       <ThemeProvider theme='light' persistent>
-        <BrowserRouter>
+        <BrowserRouter basename="/trade-rise-fall">
           <AppContent />
         </BrowserRouter>
       </ThemeProvider>
