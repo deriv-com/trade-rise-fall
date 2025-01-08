@@ -89,9 +89,6 @@ const App: React.FC = observer(() => {
         <BrowserRouter basename="/trade-rise-fall">
           <AppContent />
         </BrowserRouter>
-        <BrowserRouter basename="/">
-          <AppContent />
-        </BrowserRouter>
       </ThemeProvider>
     </ErrorBoundary>
   );
