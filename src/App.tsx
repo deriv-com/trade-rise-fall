@@ -5,6 +5,7 @@ import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner';
 import Header from './components/Header/Header';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
 
 const Homepage = React.lazy(() => import('./pages/homepage'));
 const DerivTrading = React.lazy(() => import('./pages/trading'));
@@ -61,13 +62,15 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider theme='light' persistent>
-      <BrowserRouter>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </BrowserRouter>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider theme='light' persistent>
+        <BrowserRouter>
+          <AuthProvider>
+            <AppContent />
+          </AuthProvider>
+        </BrowserRouter>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

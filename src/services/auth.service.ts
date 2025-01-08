@@ -20,8 +20,14 @@ interface TokenValidationResponse {
 
 class AuthService {
   private static instance: AuthService;
+  private pingInterval: NodeJS.Timeout | null = null;
+  private tokenCheckInterval: NodeJS.Timeout | null = null;
+  private isAuthorizing = false;
 
-  private constructor() {}
+  private constructor() {
+    // Start token check interval
+    this.startTokenCheck();
+  }
 
   public static getInstance(): AuthService {
     if (!AuthService.instance) {
@@ -30,11 +36,52 @@ class AuthService {
     return AuthService.instance;
   }
 
-  public async validateToken(token: string): Promise<boolean> {
+  private startTokenCheck(): void {
+    // Check token validity every minute
+    this.tokenCheckInterval = setInterval(async () => {
+      const token = this.getStoredToken();
+      if (token) {
+        const isValid = await this.checkTokenValidity(token);
+        if (!isValid) {
+          this.handleTokenExpiration();
+        }
+      }
+    }, 60000);
+  }
+
+  private async checkTokenValidity(token: string): Promise<boolean> {
     try {
-      const response = await getDerivAPI().sendRequest({
+      const derivAPI = getDerivAPI();
+      const response = await derivAPI.sendRequest({
         authorize: token,
-        req_id: 1
+        req_id: Date.now()
+      }) as TokenValidationResponse;
+
+      return !response.error;
+    } catch (error) {
+      console.error('Token validity check failed:', error);
+      return false;
+    }
+  }
+
+  private handleTokenExpiration(): void {
+    this.clearAuth();
+    console.log('Session expired. Please log in again.');
+  }
+
+  public async validateToken(token: string): Promise<boolean> {
+    if (this.isAuthorizing) {
+      console.log('Authorization already in progress');
+      return false;
+    }
+
+    this.isAuthorizing = true;
+
+    try {
+      const derivAPI = getDerivAPI();
+      const response = await derivAPI.sendRequest({
+        authorize: token,
+        req_id: Date.now()
       }) as TokenValidationResponse;
 
       if (response.error) {
@@ -45,6 +92,7 @@ class AuthService {
       if (response.authorize) {
         localStorage.setItem('auth_token', token);
         localStorage.setItem('user_email', response.authorize.email);
+        this.setupPingInterval();
         return true;
       }
 
@@ -52,7 +100,22 @@ class AuthService {
     } catch (error) {
       console.error('Error validating token:', error);
       return false;
+    } finally {
+      this.isAuthorizing = false;
     }
+  }
+
+  private setupPingInterval(): void {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+    }
+
+    this.pingInterval = setInterval(() => {
+      const token = this.getStoredToken();
+      if (token) {
+        this.checkTokenValidity(token).catch(console.error);
+      }
+    }, 30000);
   }
 
   public async handleOAuthCallback(urlParams: URLSearchParams): Promise<boolean> {
@@ -73,13 +136,36 @@ class AuthService {
   public clearAuth(): void {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user_email');
-    // Don't disconnect here as the WebSocket connection is managed by deriv-api.instance
+    
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
+
+    try {
+      const derivAPI = getDerivAPI();
+      derivAPI.sendRequest({
+        logout: 1
+      }).catch(console.error);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   }
 
-  public async initialize(): Promise<void> {
+  public async initialize(): Promise<boolean> {
     const token = this.getStoredToken();
     if (token) {
-      await this.validateToken(token);
+      return this.validateToken(token);
+    }
+    return false;
+  }
+
+  public cleanup(): void {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+    }
+    if (this.tokenCheckInterval) {
+      clearInterval(this.tokenCheckInterval);
     }
   }
 }
