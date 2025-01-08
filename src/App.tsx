@@ -1,29 +1,30 @@
-import { useEffect } from "react";
-import TradingPage from "./pages/trading";
-import { ErrorBoundary } from "./components/ErrorBoundary/ErrorBoundary";
-import { setSmartChartsPublicPath } from "@deriv/deriv-charts";
-import { ThemeProvider } from "@deriv-com/quill-ui";
-import { getChartUrl } from "./common/utils";
+import React, { Suspense } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { ThemeProvider } from '@deriv-com/quill-ui';
+import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner';
+import Header from './components/Header/Header';
+
+const Homepage = React.lazy(() => import('./pages/homepage'));
+const DerivTrading = React.lazy(() => import('./pages/trading'));
 
 const App: React.FC = () => {
-  useEffect(() => {
-    try {
-      const chartsPath = getChartUrl();
-      setSmartChartsPublicPath(chartsPath);
-    } catch (error) {
-      console.error("Failed to initialize charts:", error);
-    }
-  }, []);
-
   return (
-    <ThemeProvider theme="light" persistent>
-      <div className="app container">
-        <main className="app-main">
-          <ErrorBoundary>
-            <TradingPage />
-          </ErrorBoundary>
-        </main>
-      </div>
+    <ThemeProvider theme='light' persistent>
+      <BrowserRouter>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Header />
+          <Routes>
+            <Route 
+              path="/" 
+              element={<Homepage />} 
+            />
+            <Route 
+              path="/dashboard" 
+              element={<DerivTrading />} 
+            />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
     </ThemeProvider>
   );
 };
