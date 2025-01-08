@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
-import App from "./App.jsx";
-import { initializeDerivAPI } from "./services/deriv-api.instance.ts";
-import { authService } from "./services/auth.service.ts";
+import App from "./App";
+import { initializeDerivAPI } from "./services/deriv-api.instance";
+import { authService } from "./services/auth.service";
 
 const initializeApp = async () => {
   // Initialize Deriv API once before render

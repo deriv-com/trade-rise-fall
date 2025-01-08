@@ -1,12 +1,13 @@
 import React from "react";
 import { Button } from "@deriv-com/quill-ui";
 import { BrandDerivLogoCoralIcon } from "@deriv/quill-icons";
-import { useAuth } from "../../contexts/AuthContext";
 import { Link } from "react-router-dom";
+import { observer } from "mobx-react-lite";
+import { authStore } from "../../stores/AuthStore";
 import "./Header.scss";
 
-const Header: React.FC = () => {
-  const { isAuthenticated, login, logout } = useAuth();
+const Header = observer(function Header() {
+  const { isAuthenticated, login, logout } = authStore;
 
   return (
     <nav className="header">
@@ -22,7 +23,7 @@ const Header: React.FC = () => {
         )}
       </div>
       {isAuthenticated ? (
-        <Button onClick={logout} variant='primary' size="md">
+        <Button onClick={logout} variant="primary" size="md">
           Log out
         </Button>
       ) : (
@@ -32,6 +33,6 @@ const Header: React.FC = () => {
       )}
     </nav>
   );
-};
+});
 
 export default Header;

@@ -1,32 +1,25 @@
-import React, { useEffect } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { observer } from 'mobx-react-lite';
+import { authStore } from '../../stores/AuthStore';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated } = useAuth();
+const ProtectedRoute = observer(function ProtectedRoute({ children }: ProtectedRouteProps) {
   const location = useLocation();
-  const navigate = useNavigate();
+  const { isAuthenticated, isInitializing } = authStore;
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      // Redirect to homepage if not authenticated
-      navigate('/', { 
-        replace: true,
-        state: { from: location }
-      });
-    }
-  }, [isAuthenticated, navigate, location]);
+  if (isInitializing) {
+    return <div>Loading...</div>;
+  }
 
-  // Show nothing while redirecting
   if (!isAuthenticated) {
-    return null;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   return <>{children}</>;
-};
+});
 
 export default ProtectedRoute;

@@ -1,10 +1,9 @@
 import React from 'react';
 import { Button, Heading } from '@deriv-com/quill-ui';
-import { useAuth } from '../../contexts/AuthContext';
+import { authStore } from '../../stores/AuthStore';
 import './homepage.scss';
 
 const Homepage: React.FC = () => {
-  const { login } = useAuth();
 
   return (
     <div className="homepage">
@@ -18,7 +17,7 @@ const Homepage: React.FC = () => {
         </Heading.H3>
         
         <Button
-          onClick={login}
+          onClick={() => authStore.login()}
           variant="primary"
           size="lg"
         >

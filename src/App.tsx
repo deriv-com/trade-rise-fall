@@ -1,26 +1,26 @@
 import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from '@deriv-com/quill-ui';
+import { observer } from 'mobx-react-lite';
 import LoadingSpinner from './components/LoadingSpinner/LoadingSpinner';
 import Header from './components/Header/Header';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary/ErrorBoundary';
+import { authStore } from './stores/AuthStore';
 
 const Homepage = React.lazy(() => import('./pages/homepage'));
 const DerivTrading = React.lazy(() => import('./pages/trading'));
 
-const AuthHandler: React.FC = () => {
+const AuthHandler: React.FC = observer(() => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { handleAuthCallback } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get('token1');
 
     if (token) {
-      handleAuthCallback(token).then((success) => {
+      authStore.handleAuthCallback(token).then((success) => {
         // Clear the token from URL
         const cleanUrl = window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
@@ -32,10 +32,10 @@ const AuthHandler: React.FC = () => {
         }
       });
     }
-  }, [location, handleAuthCallback, navigate]);
+  }, [location, navigate]);
 
   return null;
-};
+});
 
 const AppContent: React.FC = () => {
   return (
@@ -60,18 +60,16 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
+const App: React.FC = observer(() => {
   return (
     <ErrorBoundary>
       <ThemeProvider theme='light' persistent>
         <BrowserRouter>
-          <AuthProvider>
-            <AppContent />
-          </AuthProvider>
+          <AppContent />
         </BrowserRouter>
       </ThemeProvider>
     </ErrorBoundary>
   );
-};
+});
 
 export default App;
