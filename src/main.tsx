@@ -3,7 +3,7 @@ import App from "./App";
 import { initializeDerivAPI } from "./services/deriv-api.instance";
 import { authService } from "./services/auth.service";
 
-const initializeApp = async () => {
+const initializeApp = async (): Promise<void> => {
   // Initialize Deriv API once before render
   const app_id = process.env.REACT_APP_WS_PORT;
   const endpoint = process.env.REACT_APP_WS_URL;
