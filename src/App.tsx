@@ -17,6 +17,7 @@ import { authService } from "./services/auth.service";
 
 const Homepage = React.lazy(() => import("./pages/homepage"));
 const DerivTrading = React.lazy(() => import("./pages/trading"));
+const NotFoundPage = React.lazy(() => import("./pages/404"));
 
 const AuthHandler: React.FC = observer(() => {
   const location = useLocation();
@@ -52,6 +53,7 @@ const AppContent: React.FC = () => {
       <Routes>
         <Route path="/" element={<Homepage />} />
         <Route path="/dashboard" element={<DerivTrading />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   );
