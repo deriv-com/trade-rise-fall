@@ -1,6 +1,6 @@
 .trading-panel {
   width: 360px;
-  background: var(--system-light-1-primary, #FFF);
+  background: var(--system-light-1-primary, #fff);
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -19,7 +19,7 @@
       gap: 8px;
 
       .learn-link {
-        color: var(--brand-blue, #85ACB0);
+        color: var(--brand-blue, #85acb0);
         cursor: pointer;
       }
     }
@@ -33,7 +33,8 @@
         display: flex;
         gap: 4px;
 
-        .rise-icon, .fall-icon {
+        .rise-icon,
+        .fall-icon {
           width: 16px;
           height: 16px;
           display: flex;
@@ -43,11 +44,11 @@
         }
 
         .rise-icon {
-          background: var(--state-success, #4BB4B3);
+          background: var(--state-success, #4bb4b3);
         }
 
         .fall-icon {
-          background: var(--state-danger, #EC3F3F);
+          background: var(--state-danger, #ec3f3f);
         }
       }
     }
@@ -89,18 +90,27 @@
     flex-direction: column;
     gap: 16px;
 
-    .payout-info {
-      background: var(--system-light-2-secondary, #F2F3F4);
-      padding: 16px;
-      border-radius: 8px;
+    .payout-info-row {
       display: flex;
-      justify-content: space-between;
       align-items: center;
+      gap: 12px;
+      justify-content: space-between;
+      min-height: 48px;
+      min-width: 200px;
 
-      .payout-amount {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+      span:first-child {
+        font-weight: 700;
+      }
+
+      .info-icon {
+        width: 16px;
+        height: 16px;
+        color: var(--text-less-prominent);
+        cursor: pointer;
+
+        &:hover {
+          color: var(--text-general);
+        }
       }
     }
 
@@ -113,49 +123,53 @@
       padding: 0;
       margin-bottom: 8px;
 
-        .button-content {
+      .button-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding: 0 16px;
+        color: var(--text-colored-background, #ffffff);
+        position: relative;
+        z-index: 1;
+
+        .left {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          width: 100%;
-          height: 100%;
-          padding: 0 16px;
-          color: var(--text-colored-background, #FFFFFF);
-          position: relative;
-          z-index: 1;
+          gap: 12px;
 
-          .left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-
-            svg {
-              width: 20px;
-              height: 20px;
-              color: var(--text-colored-background, #FFFFFF);
-              fill: currentColor;
-            }
+          svg {
+            width: 20px;
+            height: 20px;
+            color: var(--text-colored-background, #ffffff);
+            fill: currentColor;
           }
         }
+      }
 
       &::after {
-        content: '';
+        content: "";
         position: absolute;
         top: 0;
         right: 0;
         height: 100%;
         width: 30%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1));
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.1)
+        );
         clip-path: polygon(0 0, 100% 0, 100% 100%, 30% 100%);
       }
     }
 
     .rise-button {
-      background: linear-gradient(90deg, #4BB4B3 0%, #5ECFCE 100%);
+      background: linear-gradient(90deg, #4bb4b3 0%, #5ecfce 100%);
     }
 
     .fall-button {
-      background: linear-gradient(90deg, #EC3F3F 0%, #FF5C5C 100%);
+      background: linear-gradient(90deg, #ec3f3f 0%, #ff5c5c 100%);
     }
   }
 }

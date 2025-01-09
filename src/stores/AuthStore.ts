@@ -39,7 +39,7 @@ export class AuthStore {
 
   login = () => {
     const app_id = process.env.REACT_APP_WS_PORT;
-    const server_url = process.env.OAUTH_URL;
+    const server_url = process.env.REACT_OAUTH_URL;
 
     if (!app_id || !server_url) {
       console.error('Required environment variables are not set');
