@@ -51,14 +51,7 @@ const AppContent: React.FC = () => {
       <Header />
       <Routes>
         <Route path="/" element={<Homepage />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DerivTrading />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/dashboard" element={<DerivTrading />} />
       </Routes>
     </Suspense>
   );
