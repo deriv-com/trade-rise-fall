@@ -32,6 +32,14 @@ export default defineConfig({
   },
   output: {
     assetPrefix: "/trade-rise-fall/",
+    distPath: {
+      root: "dist",
+      js: "assets/js",
+      css: "assets/css",
+      image: "assets/images",
+      media: "assets/media",
+      html: "",
+    },
     copy: [
       {
         from: "node_modules/@deriv/deriv-charts/dist/*",
