@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { getDerivAPI } from "../services/deriv-api.instance";
 import { PriceProposalResponse } from "../types/deriv-api.types";
 import useDebounce from "./useDebounce";
+import { tradingPanelStore } from "../stores/TradingPanelStore";
 
 interface ProposalState {
   rise?: PriceProposalResponse["proposal"];
@@ -18,8 +19,8 @@ export const usePriceProposal = (
   duration: number,
   basis: string,
   symbol: string,
-  durationError: string,
-  priceError: string
+  durationError: string | null,
+  priceError: string | null
 ) => {
   const [proposal, setProposal] = useState<ProposalState>({});
   const [isLoading, setIsLoading] = useState<LoadingState>({
@@ -71,15 +72,22 @@ export const usePriceProposal = (
               setIsLoading((prev) => ({ ...prev, [type]: false }));
               if (response.error) {
                 console.error(`${type} proposal error:`, response.error);
+                tradingPanelStore.priceError =
+                  response.error.message || "Invalid contract parameters";
               } else if (response.proposal) {
                 setProposal((prev) => ({ ...prev, [type]: response.proposal }));
               }
             },
             `PROPOSAL_${type.toUpperCase()}`
           );
-        } catch (err) {
+        } catch (err: any) {
           console.error(`${type} subscription error:`, err);
           setIsLoading((prev) => ({ ...prev, [type]: false }));
+
+          if (err.code === "ContractBuyValidationError") {
+            tradingPanelStore.priceError =
+              err.message || "Invalid contract parameters";
+          }
         }
       };
 

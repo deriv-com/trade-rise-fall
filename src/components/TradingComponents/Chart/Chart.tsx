@@ -7,6 +7,7 @@ import { ChartSettings } from "../types";
 import { observer } from "mobx-react-lite";
 import { chartStore } from "../../../stores/ChartStore";
 import { ReconnectingLoader } from "../../ReconnectingLoader/ReconnectingLoader";
+import { useContractsFor } from "../../../hooks/useContractsFor";
 import "./Chart.scss";
 
 export const Chart = observer(() => {
@@ -20,7 +21,7 @@ export const Chart = observer(() => {
   } = chartStore;
   const derivAPI = getDerivAPI();
   const [isConnected, setIsConnected] = useState(derivAPI.isConnected());
-
+  useContractsFor(symbol);
   // Initialize chart store
   useEffect(() => {
     setSymbol("1HZ10V");

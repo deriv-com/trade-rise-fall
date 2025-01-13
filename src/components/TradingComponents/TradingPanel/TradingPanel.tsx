@@ -29,6 +29,7 @@ export const TradingPanel = observer(() => {
     setSelectedStakeTab,
     durationError,
     priceError,
+    is_rise_fall_valid,
   } = tradingPanelStore;
 
   const { proposal, clearProposal, isLoading } = usePriceProposal(
@@ -88,54 +89,66 @@ export const TradingPanel = observer(() => {
         </div>
       </div>
 
-      <div className="tabs-container">
-        <DurationSection
-          duration={duration}
-          selectedDurationTab={selectedDurationTab}
-          durationError={durationError ?? ""}
-          setDuration={setDuration}
-          setSelectedDurationTab={setSelectedDurationTab}
-        />
-        <StakeSection
-          price={price}
-          selectedStakeTab={selectedStakeTab}
-          priceError={priceError ?? ""}
-          setPrice={setPrice}
-          setSelectedStakeTab={setSelectedStakeTab}
-        />
-      </div>
+      {!is_rise_fall_valid ? (
+        <div className="error-message">
+          <Text as="p" size="sm" color="error">
+            This contract type is not valid for Rise/Fall
+          </Text>
+        </div>
+      ) : (
+        <>
+          <div className="tabs-container">
+            <DurationSection
+              duration={duration}
+              selectedDurationTab={selectedDurationTab}
+              durationError={durationError ?? ""}
+              setDuration={setDuration}
+              setSelectedDurationTab={setSelectedDurationTab}
+            />
+            <StakeSection
+              price={price}
+              selectedStakeTab={selectedStakeTab}
+              priceError={priceError ?? ""}
+              setPrice={setPrice}
+              setSelectedStakeTab={setSelectedStakeTab}
+            />
+          </div>
 
-      <div className="equals-section">
-        <Checkbox
-          name="allow-equals"
-          checked={allowEquals}
-          onChange={(e) =>
-            setAllowEquals((e.target as HTMLInputElement).checked)
-          }
-          label="Allow equals"
-        />
-        <Tooltip tooltipContent="Allow equals tooltip">
-          <LabelPairedCircleInfoSmBoldIcon className="text-less-prominent" />
-        </Tooltip>
-      </div>
+          {/* Equals section temporarily hidden
+          <div className="equals-section">
+            <Checkbox
+              name="allow-equals"
+              checked={allowEquals}
+              onChange={(e) =>
+                setAllowEquals((e.target as HTMLInputElement).checked)
+              }
+              label="Allow equals"
+            />
+            <Tooltip tooltipContent="Allow equals tooltip">
+              <LabelPairedCircleInfoSmBoldIcon className="text-less-prominent" />
+            </Tooltip>
+          </div>
+          */}
 
-      <div className="payout-section">
-        <TradeButton type="rise" percentage={getPercentage("rise")} />
-        <PayoutInfo
-          type="rise"
-          label={label}
-          amount={getAmount("rise")}
-          isLoading={isLoading.rise}
-        />
+          <div className="payout-section">
+            <TradeButton type="rise" percentage={getPercentage("rise")} />
+            <PayoutInfo
+              type="rise"
+              label={label}
+              amount={getAmount("rise")}
+              isLoading={isLoading.rise}
+            />
 
-        <TradeButton type="fall" percentage={getPercentage("fall")} />
-        <PayoutInfo
-          type="fall"
-          label={label}
-          amount={getAmount("fall")}
-          isLoading={isLoading.fall}
-        />
-      </div>
+            <TradeButton type="fall" percentage={getPercentage("fall")} />
+            <PayoutInfo
+              type="fall"
+              label={label}
+              amount={getAmount("fall")}
+              isLoading={isLoading.fall}
+            />
+          </div>
+        </>
+      )}
     </div>
   );
 });
