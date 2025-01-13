@@ -20,11 +20,9 @@ const Header = observer(function Header() {
           <BrandDerivLogoCoralIcon height={30} width={30} />
           Option Trading
         </Link>
-        {isAuthenticated && (
-          <Link to="/dashboard" className="header__nav-link">
-            Dashboard
-          </Link>
-        )}
+        <Link to="/dashboard" className="header__nav-link">
+          Dashboard
+        </Link>
       </div>
       {isAuthenticated ? (
         <Button onClick={logout} variant="primary" size="md">

@@ -10,7 +10,6 @@ import { ThemeProvider } from "@deriv-com/quill-ui";
 import { observer } from "mobx-react-lite";
 import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner";
 import Header from "./components/Header/Header";
-import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import { authStore } from "./stores/AuthStore";
 import { authService } from "./services/auth.service";
