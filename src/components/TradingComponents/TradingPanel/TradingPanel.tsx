@@ -1,14 +1,13 @@
-import { Button, Text, Tooltip, Checkbox } from "@deriv-com/quill-ui";
+import { Button, Text } from "@deriv-com/quill-ui";
 import {
   LabelPairedBackwardSmBoldIcon,
   TradeTypesUpsAndDownsRiseIcon,
   TradeTypesUpsAndDownsFallIcon,
-  LabelPairedCircleInfoSmBoldIcon,
 } from "@deriv/quill-icons";
 import { observer } from "mobx-react-lite";
 import { tradingPanelStore } from "../../../stores/TradingPanelStore";
 import { chartStore } from "../../../stores/ChartStore";
-import { usePriceProposal } from "../../../hooks/usePriceProposal";
+import { useRiseFallTrading } from "../../../hooks/useRiseFallTrading";
 import { DurationSection } from "../DurationSection/DurationSection";
 import { StakeSection } from "../StakeSection/StakeSection";
 import { TradeButton } from "../TradeButton/TradeButton";
@@ -32,11 +31,11 @@ export const TradingPanel = observer(() => {
     is_rise_fall_valid,
   } = tradingPanelStore;
 
-  const { proposal, clearProposal, isLoading } = usePriceProposal(
+  const { proposal, clearProposal, isLoading } = useRiseFallTrading(
+    chartStore.symbol,
     price,
     duration,
     selectedStakeTab,
-    chartStore.symbol,
     durationError,
     priceError,
     is_rise_fall_valid
