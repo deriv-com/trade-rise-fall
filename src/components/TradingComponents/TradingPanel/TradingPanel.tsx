@@ -38,7 +38,8 @@ export const TradingPanel = observer(() => {
     selectedStakeTab,
     chartStore.symbol,
     durationError,
-    priceError
+    priceError,
+    is_rise_fall_valid
   );
 
   const getAmount = (type: "rise" | "fall"): string => {

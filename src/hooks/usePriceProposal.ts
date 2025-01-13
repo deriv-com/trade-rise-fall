@@ -20,7 +20,8 @@ export const usePriceProposal = (
   basis: string,
   symbol: string,
   durationError: string | null,
-  priceError: string | null
+  priceError: string | null,
+  is_rise_fall_valid: boolean
 ) => {
   const [proposal, setProposal] = useState<ProposalState>({});
   const [isLoading, setIsLoading] = useState<LoadingState>({
@@ -99,18 +100,26 @@ export const usePriceProposal = (
 
     setProposal({});
     setIsLoading({ rise: false, fall: false });
-
+    console.log(is_rise_fall_valid, "is_rise_fall_valid");
     if (
       debouncedPrice &&
       duration &&
       basis &&
       symbol &&
       !durationError &&
-      !priceError
+      !priceError &&
+      is_rise_fall_valid
     ) {
       handleProposal();
     }
-  }, [debouncedPrice, debouncedDuration, basis, symbol, derivAPI]);
+  }, [
+    debouncedPrice,
+    debouncedDuration,
+    basis,
+    symbol,
+    derivAPI,
+    is_rise_fall_valid,
+  ]);
 
   return { proposal, clearProposal, isLoading };
 };
