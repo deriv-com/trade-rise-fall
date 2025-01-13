@@ -19,27 +19,20 @@ const DerivTrading = React.lazy(() => import("./pages/trading"));
 const NotFoundPage = React.lazy(() => import("./pages/404"));
 
 const AuthHandler: React.FC = observer(() => {
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const token = searchParams.get("token1");
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const token = params.get("token1");
-
     if (token) {
-      authStore.handleAuthCallback(token).then((success) => {
-        // Clear the token from URL
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-
-        if (success) {
-          navigate("/dashboard");
-        } else {
-          navigate("/");
-        }
-      });
+      authStore
+        .handleAuthCallback(token)
+        .then((success) =>
+          navigate(success ? "/dashboard" : "/", { replace: true })
+        );
     }
-  }, [location, navigate]);
+  }, [token, navigate]);
 
   return null;
 });
