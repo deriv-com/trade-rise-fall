@@ -100,7 +100,6 @@ export const usePriceProposal = (
 
     setProposal({});
     setIsLoading({ rise: false, fall: false });
-    console.log(is_rise_fall_valid, "is_rise_fall_valid");
     if (
       debouncedPrice &&
       duration &&
