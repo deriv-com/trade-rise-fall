@@ -12,7 +12,6 @@ import { DurationSection } from "../DurationSection/DurationSection";
 import { StakeSection } from "../StakeSection/StakeSection";
 import { TradeButton } from "../TradeButton/TradeButton";
 import { PayoutInfo } from "../PayoutInfo/PayoutInfo";
-import { OpenContractsModal } from "../OpenContractsModal/OpenContractsModal";
 import "./TradingPanel.scss";
 
 export const TradingPanel = observer(() => {
@@ -30,20 +29,17 @@ export const TradingPanel = observer(() => {
     durationError,
     priceError,
     is_rise_fall_valid,
-    openContracts,
-    setOpenContractsModalVisible,
   } = tradingPanelStore;
 
-  const { proposal, clearProposal, isLoading, buyContract } =
-    useRiseFallTrading(
-      chartStore.symbol,
-      price,
-      duration,
-      selectedStakeTab,
-      durationError,
-      priceError,
-      is_rise_fall_valid
-    );
+  const { proposal, clearProposal, isLoading } = useRiseFallTrading(
+    chartStore.symbol,
+    price,
+    duration,
+    selectedStakeTab,
+    durationError,
+    priceError,
+    is_rise_fall_valid
+  );
 
   const getAmount = (type: "rise" | "fall"): string => {
     const currentProposal = proposal[type];
@@ -135,11 +131,7 @@ export const TradingPanel = observer(() => {
           */}
 
           <div className="payout-section">
-            <TradeButton
-              type="rise"
-              percentage={getPercentage("rise")}
-              onBuy={buyContract}
-            />
+            <TradeButton type="rise" percentage={getPercentage("rise")} />
             <PayoutInfo
               type="rise"
               label={label}
@@ -147,11 +139,7 @@ export const TradingPanel = observer(() => {
               isLoading={isLoading.rise}
             />
 
-            <TradeButton
-              type="fall"
-              percentage={getPercentage("fall")}
-              onBuy={buyContract}
-            />
+            <TradeButton type="fall" percentage={getPercentage("fall")} />
             <PayoutInfo
               type="fall"
               label={label}
@@ -159,17 +147,6 @@ export const TradingPanel = observer(() => {
               isLoading={isLoading.fall}
             />
           </div>
-
-          <div className="open-contracts-button">
-            <Button
-              variant="secondary"
-              onClick={() => setOpenContractsModalVisible(true)}
-            >
-              Show Open Contracts {openContracts.length ?? 0}
-            </Button>
-          </div>
-
-          <OpenContractsModal />
         </>
       )}
     </div>

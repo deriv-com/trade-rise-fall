@@ -37,75 +37,67 @@ export const usePriceProposal = (
     setProposal({});
   };
 
-  const handleProposal = async () => {
-    setProposal({});
-    derivAPI.unsubscribeByPrefix("PROPOSAL_");
+  useEffect(() => {
+    const handleProposal = async () => {
+      setIsLoading({ fall: true, rise: true });
 
-    setIsLoading({ fall: true, rise: true });
-
-    const data = {
-      price: debouncedPrice,
-      duration: debouncedDuration,
-      basis,
-      symbol,
-    };
-
-    const numPrice = parseFloat(data.price);
-    if (numPrice <= 0) {
-      return;
-    }
-
-    const subscribeToProposal = async (type: "rise" | "fall") => {
-      const config = {
-        proposal: 1,
-        subscribe: 1,
-        amount: numPrice,
-        basis: data.basis,
-        contract_type: type === "rise" ? "CALL" : "PUT",
-        currency: "USD",
-        duration: data.duration,
-        duration_unit: "m",
-        symbol: data.symbol,
+      const data = {
+        price: debouncedPrice,
+        duration: debouncedDuration,
+        basis,
+        symbol,
       };
 
-      try {
-        await derivAPI.subscribeStream(
-          config,
-          (response: any) => {
-            setIsLoading((prev) => ({ ...prev, [type]: false }));
-            if (response.error) {
-              console.error(`${type} proposal error:`, response.error);
-              tradingPanelStore.priceError =
-                response.error.message || "Invalid contract parameters";
-            } else if (response.proposal) {
-              setProposal((prev) => ({ ...prev, [type]: response.proposal }));
-              if (type === "rise") {
-                tradingPanelStore.setRiseContractId(response.proposal.id);
-              } else {
-                tradingPanelStore.setFallContractId(response.proposal.id);
-              }
-            }
-          },
-          `PROPOSAL_${type.toUpperCase()}`
-        );
-      } catch (err: any) {
-        console.error(`${type} subscription error:`, err);
-        setIsLoading((prev) => ({ ...prev, [type]: false }));
-
-        if (err.code === "ContractBuyValidationError") {
-          tradingPanelStore.priceError =
-            err.message || "Invalid contract parameters";
-        }
+      const numPrice = parseFloat(data.price);
+      if (numPrice <= 0) {
+        return;
       }
+
+      const subscribeToProposal = async (type: "rise" | "fall") => {
+        const config = {
+          proposal: 1,
+          subscribe: 1,
+          amount: numPrice,
+          basis: data.basis,
+          contract_type: type === "rise" ? "CALL" : "PUT",
+          currency: "USD",
+          duration: data.duration,
+          duration_unit: "m",
+          symbol: data.symbol,
+        };
+
+        try {
+          await derivAPI.subscribeStream(
+            config,
+            (response: any) => {
+              setIsLoading((prev) => ({ ...prev, [type]: false }));
+              if (response.error) {
+                console.error(`${type} proposal error:`, response.error);
+                tradingPanelStore.priceError =
+                  response.error.message || "Invalid contract parameters";
+              } else if (response.proposal) {
+                setProposal((prev) => ({ ...prev, [type]: response.proposal }));
+              }
+            },
+            `PROPOSAL_${type.toUpperCase()}`
+          );
+        } catch (err: any) {
+          console.error(`${type} subscription error:`, err);
+          setIsLoading((prev) => ({ ...prev, [type]: false }));
+
+          if (err.code === "ContractBuyValidationError") {
+            tradingPanelStore.priceError =
+              err.message || "Invalid contract parameters";
+          }
+        }
+      };
+
+      await Promise.all([
+        subscribeToProposal("rise"),
+        subscribeToProposal("fall"),
+      ]);
     };
 
-    await Promise.all([
-      subscribeToProposal("rise"),
-      subscribeToProposal("fall"),
-    ]);
-  };
-
-  useEffect(() => {
     setProposal({});
     setIsLoading({ rise: false, fall: false });
     if (
@@ -128,5 +120,5 @@ export const usePriceProposal = (
     is_rise_fall_valid,
   ]);
 
-  return { proposal, clearProposal, isLoading, handleProposal };
+  return { proposal, clearProposal, isLoading };
 };

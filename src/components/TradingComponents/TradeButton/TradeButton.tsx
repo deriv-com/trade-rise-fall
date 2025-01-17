@@ -7,10 +7,9 @@ import {
 interface TradeButtonProps {
   type: "rise" | "fall";
   percentage: string;
-  onBuy: (type: "rise" | "fall") => void;
 }
 
-export const TradeButton = ({ type, percentage, onBuy }: TradeButtonProps) => {
+export const TradeButton = ({ type, percentage }: TradeButtonProps) => {
   const Icon =
     type === "rise"
       ? TradeTypesUpsAndDownsRiseIcon
@@ -19,13 +18,7 @@ export const TradeButton = ({ type, percentage, onBuy }: TradeButtonProps) => {
   const className = `${type}-button`;
 
   return (
-    <Button
-      variant="primary"
-      size="lg"
-      fullWidth
-      className={className}
-      onClick={() => onBuy(type)}
-    >
+    <Button variant="primary" size="lg" fullWidth className={className}>
       <div className="button-content">
         <div className="left">
           <Icon />
