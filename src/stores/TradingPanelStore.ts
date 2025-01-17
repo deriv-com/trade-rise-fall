@@ -100,7 +100,7 @@ export class TradingPanelStore {
     if (existingIndex !== -1) {
       this.openContracts[existingIndex] = contract;
     } else {
-      this.openContracts.push(contract);
+      contract.contract_id && this.openContracts.push(contract);
     }
   };
 
