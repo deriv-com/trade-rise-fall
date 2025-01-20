@@ -19,7 +19,7 @@ export default defineConfig({
   ],
   source: {
     entry: {
-      index: "./src/main.jsx",
+      index: "./src/main.tsx",
     },
     define: {
       "process.env": JSON.stringify(process.env),
