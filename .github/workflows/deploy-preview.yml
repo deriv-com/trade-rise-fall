@@ -11,7 +11,6 @@ env:
   REACT_APP_WS_URL: ${{ secrets.REACT_APP_WS_URL }}
   REACT_CURRENT_ENVIRONMENT: preview
   REACT_OAUTH_URL: ${{ secrets.REACT_OAUTH_URL }}
-  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
 
 permissions:
   pull-requests: write
@@ -44,9 +43,14 @@ jobs:
         run: npm run build
 
       - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
-          echo "Checking if VERCEL_TOKEN is set (should be non-empty): [[ ! -z $VERCEL_TOKEN ]]"
-          echo "Running Vercel deployment..."
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "Error: VERCEL_TOKEN is empty"
+            exit 1
+          fi
+          echo "Token is set, proceeding with deployment..."
           DEPLOYMENT_URL=$(vercel deploy --token="$VERCEL_TOKEN" --yes)
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
