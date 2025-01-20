@@ -45,36 +45,25 @@ export class AuthStore {
     this.lastError = error;
   };
 
-  login = async (credentials: LoginCredentials): Promise<boolean> => {
+  handleLoginSuccess = (token: string) => {
+    authService.setToken(token);
+    this.setAuthenticated(true);
+    this.setAuthorizing(false);
+    this.setLastError(null);
+  };
+
+  handleLoginFailure = (error: Error) => {
+    this.setAuthenticated(false);
+    this.setAuthorizing(false);
+    this.setLastError(error.message);
+  };
+
+  startAuthorizing = () => {
     if (this.isAuthorizing) {
       throw new AuthError('Authorization already in progress');
     }
-
     this.setAuthorizing(true);
     this.setLastError(null);
-
-    try {
-      const data = await apiRequest<LoginResponse>({
-        url: '/login',
-        method: 'POST',
-        data: credentials
-      });
-
-      if (!data.token) {
-        throw new AuthError('No token received');
-      }
-
-      authService.setToken(data.token);
-      this.setAuthenticated(true);
-      return true;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-      this.setLastError(errorMessage);
-      this.setAuthenticated(false);
-      throw error;
-    } finally {
-      this.setAuthorizing(false);
-    }
   };
 
   logout = () => {

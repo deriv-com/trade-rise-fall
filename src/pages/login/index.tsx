@@ -4,6 +4,7 @@ import { observer } from 'mobx-react-lite';
 import { Button, TextField, Text } from '@deriv-com/quill-ui';
 import { BrandDerivLogoCoralIcon } from '@deriv/quill-icons';
 import { authStore } from '../../stores/AuthStore';
+import { authEndpoints, balanceEndpoints } from '../../api/endpoints';
 import styles from './login.module.scss';
 
 const LoginPage: React.FC = observer(() => {
@@ -22,22 +23,31 @@ const LoginPage: React.FC = observer(() => {
         throw new Error('Please fill in all fields');
       }
 
+      // Start authorization process
+      authStore.startAuthorizing();
+
       // Attempt login
-      const success = await authStore.login({
+      const response = await authEndpoints.login({
         account_id: accountId.trim(),
         password: password.trim(),
       });
 
-      if (success) {
-        // Clear form
-        setAccountId('');
-        setPassword('');
-        // Redirect to dashboard on success
-        navigate('/dashboard', { replace: true });
-      }
+      // Handle successful login
+      authStore.handleLoginSuccess(response.token);
+
+      // Clear form
+      setAccountId('');
+      setPassword('');
+      
+      // Fetch balance before navigation
+      await balanceEndpoints.fetchBalance();
+      
+      // Redirect to dashboard on success
+      navigate('/dashboard', { replace: true });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed. Please try again.';
-      setError(errorMessage);
+      const error = err instanceof Error ? err : new Error('Login failed. Please try again.');
+      authStore.handleLoginFailure(error);
+      setError(error.message);
     }
   };
 

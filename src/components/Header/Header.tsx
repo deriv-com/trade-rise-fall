@@ -4,10 +4,12 @@ import { BrandDerivLogoCoralIcon } from "@deriv/quill-icons";
 import { Link, useNavigate } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import { authStore } from "../../stores/AuthStore";
+import { balanceStore } from "../../stores/BalanceStore";
 import "./Header.scss";
 
 const Header = observer(function Header() {
   const { isAuthenticated, logout } = authStore;
+  const { balance, currency } = balanceStore;
   const navigate = useNavigate();
 
   const handleLogout = useCallback(() => {
@@ -31,6 +33,11 @@ const Header = observer(function Header() {
         </Link>
       </div>
       <div className="header__right">
+        {isAuthenticated && (
+          <div className="header__balance">
+            {balance} {currency}
+          </div>
+        )}
         {isAuthenticated ? (
           <Button 
             onClick={handleLogout}

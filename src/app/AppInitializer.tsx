@@ -1,10 +1,19 @@
 import React, { useState, useEffect } from "react";
+import { observer } from "mobx-react-lite";
 import { initializeDerivAPI } from "../services/deriv-api.instance";
 import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 import App from "../App";
+import { authStore } from "../stores/AuthStore";
+import { balanceEndpoints } from "../api/endpoints";
 
-const AppInitializer: React.FC = () => {
-  const [isInitialized, setIsInitialized] = useState(false);
+const AppInitializer = observer(() => {
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (authStore.isAuthenticated) {
+      balanceEndpoints.fetchBalance().catch(console.error);
+    }
+  }, [authStore.isAuthenticated]);
 
   useEffect(() => {
     const initialize = async () => {
@@ -24,6 +33,6 @@ const AppInitializer: React.FC = () => {
   }, []);
 
   return isInitialized ? <App /> : <LoadingSpinner />;
-};
+});
 
 export default AppInitializer;

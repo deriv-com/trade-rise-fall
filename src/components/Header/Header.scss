@@ -21,6 +21,15 @@
         gap: 16px;
     }
 
+    &__balance {
+        padding: 8px 16px;
+        background-color: #f5f7fa;
+        border-radius: 4px;
+        font-weight: 600;
+        color: #333;
+        font-size: 14px;
+    }
+
     &__logo {
         display: flex;
         align-items: center;

@@ -1,37 +1,44 @@
 import axios, { 
   AxiosRequestConfig, 
-  AxiosResponse, 
   InternalAxiosRequestConfig,
   AxiosError,
   AxiosHeaders
 } from 'axios';
+import { API_CONFIG, AUTH_CONFIG } from '../config/api.config';
+import { calculateBackoff, shouldRetryRequest, wait } from '../utils/retry';
+import { 
+  ApiError, 
+  AuthenticationError, 
+  NetworkError, 
+  TimeoutError,
+  ValidationError 
+} from '../types/errors';
+import { authService } from '../services/auth.service';
+
 
 // Extended config interface to include retry property
-interface RetryConfig extends InternalAxiosRequestConfig {
+interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   retry?: number;
 }
 
 // Create an Axios instance with enhanced security config
 const apiClient = axios.create({
-  baseURL: process.env.REACT_APP_API_URL,
-  timeout: 10000, // Request timeout
-  withCredentials: true, // Enable sending cookies with requests
-  xsrfCookieName: 'XSRF-TOKEN',
-  xsrfHeaderName: 'X-XSRF-TOKEN',
+  baseURL: API_CONFIG.baseURL,
+  timeout: API_CONFIG.timeout,
+  withCredentials: true,
+  xsrfCookieName: AUTH_CONFIG.xsrfCookieName,
+  xsrfHeaderName: AUTH_CONFIG.xsrfHeaderName,
   maxRedirects: 5,
-  maxContentLength: 50 * 1024 * 1024, // 50MB max content length
-  validateStatus: (status) => status >= 200 && status < 300, // Only accept 2xx status codes
-  headers: {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-  }
+  maxContentLength: API_CONFIG.maxContentLength,
+  validateStatus: (status) => status >= 200 && status < 300,
+  headers: API_CONFIG.headers
 });
 
 // Request interceptor
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Add authorization token and security headers
-    const token = localStorage.getItem('authToken');
+    // Add authorization token
+    const token = authService.getStoredToken();
     if (token) {
       config.headers = config.headers ?? new AxiosHeaders();
       config.headers.set('Authorization', `Bearer ${token}`);
@@ -39,105 +46,74 @@ apiClient.interceptors.request.use(
 
     // Validate request URL
     if (config.url) {
-      const url = new URL(config.url, process.env.REACT_APP_API_URL);
-      if (!url.href.startsWith(process.env.REACT_APP_API_URL || '')) {
-        throw new Error('Invalid request URL');
+      const url = new URL(config.url, API_CONFIG.baseURL);
+      if (!url.href.startsWith(API_CONFIG.baseURL || '')) {
+        throw new ValidationError('Invalid request URL');
       }
     }
 
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(new ApiError('Request configuration error', undefined, error.code))
 );
 
 // Response interceptor with retry logic
 apiClient.interceptors.response.use(
-  (response: AxiosResponse) => {
+  (response) => {
     // Validate response content type
     const contentType = response.headers['content-type'];
     if (contentType && !contentType.includes('application/json')) {
-      throw new Error('Invalid response content type');
+      throw new ValidationError('Invalid response content type');
     }
     return response;
   },
   async (error: AxiosError) => {
     if (!error.config) {
-      return Promise.reject(error);
+      return Promise.reject(new ApiError('Invalid request configuration'));
     }
 
-    const retryConfig = error.config as RetryConfig;
-    
-    // Maximum retry attempts
-    const MAX_RETRIES = 3;
-    
-    // Initialize retry count if not set
-    if (typeof retryConfig.retry === 'undefined') {
-      retryConfig.retry = 0;
-    }
-
-    // Conditions for retry
-    const shouldRetry = (
-      retryConfig.retry < MAX_RETRIES && 
-      error.response && 
-      [408, 429, 500, 502, 503, 504].includes(error.response.status)
-    );
-
-    if (shouldRetry) {
-      retryConfig.retry += 1;
-      const delayMs = Math.min(1000 * (2 ** retryConfig.retry), 10000);
+    // Handle retry logic
+    if (shouldRetryRequest(error, {
+      retry: (error.config as ExtendedAxiosRequestConfig).retry,
+      maxRetries: API_CONFIG.maxRetries,
+      retryStatusCodes: API_CONFIG.retryStatusCodes
+    })) {
+      const retryCount = ((error.config as ExtendedAxiosRequestConfig).retry ?? 0) + 1;
+      const backoffDelay = calculateBackoff(retryCount);
       
-      // Wait before retrying
-      await new Promise(resolve => setTimeout(resolve, delayMs));
+      (error.config as ExtendedAxiosRequestConfig).retry = retryCount;
+      await wait(backoffDelay);
       
-      // Create a new request with the updated config
-      return apiClient.request(retryConfig);
+      return apiClient.request(error.config);
     }
 
+    // Handle specific error cases
     if (error.response) {
-      // Log error details securely
-      console.error('Response Error:', {
-        status: error.response.status,
-        timestamp: new Date().toISOString(),
-        code: error.code || 'UNKNOWN_ERROR'
-      });
+      const status = error.response.status;
       
       // Handle 401 Unauthorized
-      if (error.response.status === 401) {
-        // Clear all auth-related data
-        localStorage.removeItem('authToken');
-        sessionStorage.clear(); // Clear any session data
-        
-        // Remove any auth-related cookies
-        document.cookie.split(';').forEach(cookie => {
-          document.cookie = cookie
-            .replace(/^ +/, '')
-            .replace(/=.*/, `=;expires=${new Date(0).toUTCString()};path=/`);
-        });
-        
-        // Redirect to logout
-        window.location.href = '/logout';
+      if (status === 401) {
+        await authService.clearAuth();
+        throw new AuthenticationError();
       }
       
       // Handle timeout
       if (error.code === 'ECONNABORTED' && error.message.includes('timeout')) {
-        console.error('Request timeout');
+        throw new TimeoutError();
       }
 
-    } else if (error.request) {
-      console.error('No response received', {
-        timestamp: new Date().toISOString(),
-        code: error.code || 'NO_RESPONSE'
-      });
-    } else {
-      console.error('Request setup error', {
-        timestamp: new Date().toISOString(),
-        code: error.code || 'SETUP_ERROR'
-      });
+      throw new ApiError(
+        (error.response.data as { message?: string })?.message || 'Request failed',
+        status,
+        error.code
+      );
+    } 
+    
+    if (error.request) {
+      throw new NetworkError('No response received');
     }
-
-    return Promise.reject(error);
+    
+    throw new ApiError('Request failed', undefined, error.code);
   }
 );
 
@@ -146,15 +122,18 @@ export const apiRequest = async <T = any>(config: AxiosRequestConfig): Promise<T
   try {
     // Sanitize request data
     if (config.data && typeof config.data === 'object') {
-      config.data = JSON.parse(JSON.stringify(config.data)); // Deep clone to prevent XSS
+      config.data = JSON.parse(JSON.stringify(config.data));
     }
 
     const response = await apiClient.request<T>(config);
     return response.data;
   } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    
     if (axios.isAxiosError(error)) {
-      // Log error details securely with masked sensitive data
-      const urlObj = config.url ? new URL(config.url, process.env.REACT_APP_API_URL) : null;
+      const urlObj = config.url ? new URL(config.url, API_CONFIG.baseURL) : null;
       const sanitizedPath = urlObj ? urlObj.pathname : 'unknown';
       
       console.error('API Request Error:', {
@@ -163,18 +142,11 @@ export const apiRequest = async <T = any>(config: AxiosRequestConfig): Promise<T
         timestamp: new Date().toISOString(),
         errorType: error.name,
         status: error.response?.status,
-        // Avoid logging full error message as it might contain sensitive data
         errorCode: error.code || 'UNKNOWN_ERROR'
       });
-
-      // Enhance error message for client
-      const errorMessage = error.response?.status === 401 
-        ? 'Authentication required' 
-        : 'An error occurred while processing your request';
-      
-      throw new Error(errorMessage);
     }
-    throw error;
+    
+    throw new ApiError('An unexpected error occurred');
   }
 };
 
