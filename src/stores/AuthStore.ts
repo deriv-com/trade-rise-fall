@@ -7,49 +7,69 @@ interface LoginCredentials {
   password: string;
 }
 
+interface LoginResponse {
+  token: string;
+  user?: {
+    id: string;
+    email: string;
+  };
+}
+
+class AuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AuthError';
+  }
+}
+
 export class AuthStore {
   isAuthenticated: boolean = false;
   isAuthorizing: boolean = false;
+  lastError: string | null = null;
 
   constructor() {
-    // Set initial auth state before making observable
     const token = authService.getStoredToken();
     this.isAuthenticated = !!token;
-    
     makeAutoObservable(this);
   }
 
-  setAuthenticated = (state: boolean) => {
+  private setAuthenticated = (state: boolean) => {
     this.isAuthenticated = state;
   };
 
-  setAuthorizing = (state: boolean) => {
+  private setAuthorizing = (state: boolean) => {
     this.isAuthorizing = state;
+  };
+
+  private setLastError = (error: string | null) => {
+    this.lastError = error;
   };
 
   login = async (credentials: LoginCredentials): Promise<boolean> => {
     if (this.isAuthorizing) {
-      throw new Error('Authorization already in progress');
+      throw new AuthError('Authorization already in progress');
     }
 
     this.setAuthorizing(true);
+    this.setLastError(null);
 
     try {
-      const data = await apiRequest<{ token: string }>({
+      const data = await apiRequest<LoginResponse>({
         url: '/login',
         method: 'POST',
         data: credentials
       });
 
       if (!data.token) {
-        throw new Error('No token received');
+        throw new AuthError('No token received');
       }
 
       authService.setToken(data.token);
       this.setAuthenticated(true);
       return true;
     } catch (error) {
-      console.error('Login error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+      this.setLastError(errorMessage);
       this.setAuthenticated(false);
       throw error;
     } finally {
@@ -59,7 +79,12 @@ export class AuthStore {
 
   logout = () => {
     this.setAuthenticated(false);
+    this.setLastError(null);
     authService.clearAuth();
+  };
+
+  clearError = () => {
+    this.setLastError(null);
   };
 }
 
