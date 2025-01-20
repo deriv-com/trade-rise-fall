@@ -23,7 +23,7 @@ const Homepage: React.FC = () => {
             if (isLogged()) {
               navigate("/dashboard");
             } else {
-              authStore.login();
+              navigate("/login");
             }
           }}
           variant="primary"
