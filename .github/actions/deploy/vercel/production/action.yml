@@ -51,7 +51,8 @@ runs:
       id: deploy
       shell: bash
       run: |
-        DEPLOYMENT_URL=$(vercel deploy --prod --token=${{ inputs.vercel-token }} --yes)
+        cd dist
+        DEPLOYMENT_URL=$(vercel deploy --cwd . --prod --token=${{ inputs.vercel-token }} --yes)
         echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
       env:
         VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
