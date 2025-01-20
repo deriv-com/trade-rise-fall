@@ -19,10 +19,9 @@ concurrency:
 env:
   NODE_ENV: production
   HUSKY: 0
-  REQUIRED_SECRETS: >-
-    VERCEL_TOKEN
-    VERCEL_ORG_ID
-    VERCEL_PROJECT_ID
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
 jobs:
   validate:
@@ -35,18 +34,26 @@ jobs:
       - name: Validate Required Secrets
         id: check-secrets
         run: |
+          echo "🔍 Checking required secrets..."
           missing_secrets=()
-          for secret in $REQUIRED_SECRETS; do
-            if [ -z "${!secret}" ]; then
-              missing_secrets+=($secret)
-            fi
-          done
+          
+          if [ -z "$VERCEL_TOKEN" ]; then
+            missing_secrets+=("VERCEL_TOKEN")
+          fi
+          if [ -z "$VERCEL_ORG_ID" ]; then
+            missing_secrets+=("VERCEL_ORG_ID")
+          fi
+          if [ -z "$VERCEL_PROJECT_ID" ]; then
+            missing_secrets+=("VERCEL_PROJECT_ID")
+          fi
 
           if [ ${#missing_secrets[@]} -ne 0 ]; then
-            echo "Missing required secrets: ${missing_secrets[*]}"
+            echo "❌ Missing required secrets: ${missing_secrets[*]}"
             echo "valid=false" >> $GITHUB_OUTPUT
             exit 1
           fi
+          
+          echo "✅ All required secrets are present"
           echo "valid=true" >> $GITHUB_OUTPUT
 
   deploy:
@@ -73,11 +80,13 @@ jobs:
         timeout-minutes: 10
         uses: ./.github/actions/deploy/vercel/production
         env:
-          # Pass all repository secrets to the action
           REACT_APP_WS_PORT: ${{ secrets.REACT_APP_WS_PORT }}
           REACT_APP_WS_URL: ${{ secrets.REACT_APP_WS_URL }}
           REACT_APP_OAUTH_URL: ${{ secrets.REACT_APP_OAUTH_URL }}
           REACT_APP_CURRENT_ENVIRONMENT: production
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
