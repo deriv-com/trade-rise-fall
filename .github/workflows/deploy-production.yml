@@ -2,7 +2,7 @@ name: Deploy Production
 on:
   push:
     branches:
-      - main # or master, depending on your default branch
+      - master
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}

@@ -11,6 +11,10 @@ env:
   REACT_CURRENT_ENVIRONMENT: preview
   REACT_OAUTH_URL: ${{ secrets.REACT_OAUTH_URL }}
 
+permissions:
+  pull-requests: write
+  contents: read
+
 jobs:
   Deploy-Preview:
     runs-on: ubuntu-latest
