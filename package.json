@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "dev": "rsbuild dev --open",
+    "dev": "rsbuild dev --port 5173 --open",
     "build": "rsbuild build",
     "preview": "rsbuild preview"
   },
@@ -13,6 +13,7 @@
     "@deriv/deriv-charts": "^2.8.0",
     "@deriv/quill-icons": "^2.2.2",
     "@rsbuild/plugin-sass": "^1.1.2",
+    "axios": "^1.7.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^7.1.1"

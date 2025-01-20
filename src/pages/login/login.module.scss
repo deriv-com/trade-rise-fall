@@ -1,0 +1,138 @@
+// Variables
+:root {
+  --login-padding-lg: 1.6rem;
+  --login-padding-sm: 1.2rem;
+  --login-gap: 0.8rem;
+  --input-height: 4rem;
+  --font-size: 1.4rem;
+  --border-radius: 0.8rem;
+  --header-height: 6.4rem; // 16px padding * 2 + content height
+}
+
+// Layout
+.login-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--header-height);
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--login-padding-lg);
+  background-color: var(--system-light-1-primary-background);
+  box-sizing: border-box;
+  min-height: calc(100vh - var(--header-height));
+}
+
+// Main box
+.login-box {
+  width: 100%;
+  max-width: 32rem;
+  padding: var(--login-padding-lg);
+  background: var(--system-light-1-primary-background-hover);
+  border-radius: var(--border-radius);
+  box-shadow: 0 0.2rem 0.8rem rgba(0, 0, 0, 0.04);
+}
+
+// Header
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--login-gap);
+  margin-bottom: var(--login-padding-lg);
+}
+
+// Error message
+.error-message {
+  margin-bottom: var(--login-padding-lg);
+  padding: var(--login-gap);
+  text-align: center;
+  border-radius: calc(var(--border-radius) / 2);
+  background-color: var(--system-light-1-error-background);
+  border: 0.1rem solid var(--system-light-1-error-text);
+  color: var(--system-light-1-error-text);
+}
+
+// Form elements
+.form-group {
+  margin-bottom: var(--login-gap);
+
+  [class^="textfield_"] {
+    label {
+      display: block;
+      margin-bottom: calc(var(--login-gap) / 2);
+      font-size: var(--font-size);
+    }
+
+    [class^="textfield_input"] input {
+      width: 100%;
+      height: var(--input-height);
+      padding: var(--login-gap) var(--login-padding-sm);
+      font-size: var(--font-size);
+      text-align: right;
+
+      &::placeholder {
+        text-align: right;
+        color: var(--system-light-1-less-prominent-text);
+      }
+
+      &:-webkit-autofill {
+        -webkit-text-fill-color: var(--system-light-1-prominent-text);
+        box-shadow: 0 0 0 3rem white inset !important;
+        text-align: right;
+      }
+    }
+  }
+}
+
+// OAuth section
+.oauth-section {
+  margin-top: var(--login-padding-lg);
+  padding-top: var(--login-padding-lg);
+  text-align: center;
+  border-top: 0.1rem solid var(--system-light-1-general-border);
+
+  p {
+    margin-bottom: var(--login-padding-sm);
+    color: var(--system-light-1-less-prominent-text);
+  }
+}
+
+.oauth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--login-gap);
+  height: var(--input-height);
+  font-size: var(--font-size);
+}
+
+// Responsive styles
+@media screen and (max-width: 480px), screen and (max-height: 600px) {
+  .login-container {
+    padding: var(--login-padding-sm);
+  }
+
+  .login-box {
+    padding: var(--login-padding-sm);
+  }
+
+  .login-header {
+    gap: calc(var(--login-gap) * 0.75);
+    margin-bottom: var(--login-padding-sm);
+  }
+
+  .oauth-section {
+    margin-top: var(--login-padding-sm);
+    padding-top: var(--login-padding-sm);
+  }
+}
+
+@media screen and (max-height: 600px) {
+  .login-container {
+    align-items: flex-start;
+    padding-top: var(--login-padding-lg);
+  }
+}

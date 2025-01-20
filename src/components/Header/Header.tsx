@@ -7,11 +7,7 @@ import { authStore } from "../../stores/AuthStore";
 import "./Header.scss";
 
 const Header = observer(function Header() {
-  const { isAuthenticated, isInitializing, login, logout } = authStore;
-
-  if (isInitializing) {
-    return null;
-  }
+  const { isAuthenticated, logout } = authStore;
 
   return (
     <nav className="header">
@@ -29,7 +25,7 @@ const Header = observer(function Header() {
           Log out
         </Button>
       ) : (
-        <Button onClick={login} variant="primary" size="md">
+        <Button onClick={() => window.location.href = '/trade-rise-fall/login'} variant="primary" size="md">
           Log in
         </Button>
       )}

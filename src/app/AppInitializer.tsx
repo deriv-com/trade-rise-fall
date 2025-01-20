@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { initializeDerivAPI } from "../services/deriv-api.instance";
-import { authService } from "../services/auth.service";
 import LoadingSpinner from "../components/LoadingSpinner/LoadingSpinner";
 import App from "../App";
 
@@ -18,7 +17,6 @@ const AppInitializer: React.FC = () => {
       }
 
       initializeDerivAPI({ app_id, endpoint });
-      await authService.initialize();
       setIsInitialized(true);
     };
 

@@ -1,33 +1,23 @@
 import { makeAutoObservable } from "mobx";
 import { authService } from "../services/auth.service";
+import { apiRequest } from "../middleware/middleware";
+
+interface LoginCredentials {
+  accountId: string;
+  password: string;
+}
 
 export class AuthStore {
   isAuthenticated: boolean = false;
-  isInitializing: boolean = true;
   isAuthorizing: boolean = false;
 
   constructor() {
+    // Set initial auth state before making observable
+    const token = authService.getStoredToken();
+    this.isAuthenticated = !!token;
+    
     makeAutoObservable(this);
   }
-
-  public async initialize() {
-    try {
-      const token = authService.getStoredToken();
-      if (token) {
-        const success = await authService.validateToken(token);
-        this.setAuthenticated(success);
-      }
-    } catch (error) {
-      console.error('Auth initialization error:', error);
-      this.setAuthenticated(false);
-    } finally {
-      this.setInitializing(false);
-    }
-  }
-
-  setInitializing = (state: boolean) => {
-    this.isInitializing = state;
-  };
 
   setAuthenticated = (state: boolean) => {
     this.isAuthenticated = state;
@@ -37,46 +27,40 @@ export class AuthStore {
     this.isAuthorizing = state;
   };
 
-  login = () => {
-    const app_id = process.env.REACT_APP_WS_PORT;
-    const server_url = process.env.REACT_OAUTH_URL;
-
-    if (!app_id || !server_url) {
-      console.error('Required environment variables are not set');
-      return;
-    }
-
-    const domain = window.location.hostname;
-    const redirect_uri = `${window.location.protocol}//${domain}${window.location.port ? `:${window.location.port}` : ''}${window.location.pathname}`;
-
-    const deriv_oauth_url = `${server_url}/oauth2/authorize?app_id=${app_id}&l=EN&brand=deriv&redirect_uri=${encodeURIComponent(redirect_uri)}`;
-
-    window.location.href = deriv_oauth_url;
-  };
-
-  logout = () => {
-    this.setAuthenticated(false);
-    authService.clearAuth();
-  };
-
-  handleAuthCallback = async (token: string): Promise<boolean> => {
+  login = async (credentials: LoginCredentials): Promise<boolean> => {
     if (this.isAuthorizing) {
-      console.log('Authorization already in progress');
-      return false;
+      throw new Error('Authorization already in progress');
     }
 
     this.setAuthorizing(true);
 
     try {
-      const success = await authService.validateToken(token);
-      this.setAuthenticated(success);
-      return success;
+      const data = await apiRequest<{ token: string }>({
+        url: '/login',
+        method: 'POST',
+        data: credentials
+      });
+
+      if (!data.token) {
+        throw new Error('No token received');
+      }
+
+      authService.setToken(data.token);
+      this.setAuthenticated(true);
+      return true;
     } catch (error) {
-      console.error('Auth callback error:', error);
-      return false;
+      console.error('Login error:', error);
+      this.setAuthenticated(false);
+      throw error;
     } finally {
       this.setAuthorizing(false);
     }
+  };
+
+  logout = () => {
+    this.setAuthenticated(false);
+    authService.clearAuth();
+    window.location.href = '/trade-rise-fall/login';
   };
 }
 
