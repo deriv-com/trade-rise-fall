@@ -45,7 +45,9 @@ jobs:
 
       - name: Deploy to Vercel
         run: |
-          DEPLOYMENT_URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --yes)
+          echo "Checking if VERCEL_TOKEN is set (should be non-empty): [[ ! -z $VERCEL_TOKEN ]]"
+          echo "Running Vercel deployment..."
+          DEPLOYMENT_URL=$(vercel deploy --token="$VERCEL_TOKEN" --yes)
           echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
 
       - name: Comment on PR
