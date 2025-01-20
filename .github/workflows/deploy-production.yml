@@ -72,12 +72,6 @@ jobs:
         id: deploy
         timeout-minutes: 10
         uses: ./.github/actions/deploy/vercel/production
-        env:
-          # Pass all repository secrets to the action
-          REACT_APP_WS_PORT: ${{ secrets.REACT_APP_WS_PORT }}
-          REACT_APP_WS_URL: ${{ secrets.REACT_APP_WS_URL }}
-          REACT_OAUTH_URL: ${{ secrets.REACT_OAUTH_URL }}
-          REACT_CURRENT_ENVIRONMENT: production
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}

@@ -49,6 +49,10 @@ runs:
       env:
         VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
         VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}
+        REACT_APP_WS_PORT: ${{ secrets.REACT_APP_WS_PORT }}
+        REACT_APP_WS_URL: ${{ secrets.REACT_APP_WS_URL }}
+        REACT_OAUTH_URL: ${{ secrets.REACT_OAUTH_URL }}
+        REACT_CURRENT_ENVIRONMENT: preview
 
     - name: Deploy to Vercel
       id: deploy
