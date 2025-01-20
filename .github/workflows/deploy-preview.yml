@@ -1,60 +1,215 @@
 name: Deploy Preview
-on:
-  pull_request:
-    branches:
-    - master
 
-env:
-  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-  REACT_APP_WS_PORT: ${{ secrets.REACT_APP_WS_PORT }}
-  REACT_APP_WS_URL: ${{ secrets.REACT_APP_WS_URL }}
-  REACT_CURRENT_ENVIRONMENT: preview
-  REACT_OAUTH_URL: ${{ secrets.REACT_OAUTH_URL }}
+on:
+  pull_request_target:
+    branches: [ master ]
+    types: [opened, synchronize, reopened]
 
 permissions:
-  pull-requests: write
   contents: read
+  packages: read
+  pull-requests: write
   deployments: write
+  id-token: write
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: development
+  HUSKY: 0
 
 jobs:
-  Deploy-Preview:
+  security-check:
+    name: Security Check
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+    outputs:
+      is-fork: ${{ steps.check.outputs.is-fork }}
+      is-authorized: ${{ steps.check.outputs.is-authorized }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Check PR source and permissions
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const isFork = pr.head.repo.full_name !== pr.base.repo.full_name;
+
+            let isAuthorized = false;
+            try {
+              const { data: permission } = await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                username: pr.user.login
+              });
+              isAuthorized = ['admin', 'write'].includes(permission.permission);
+            } catch (e) {
+              console.error('Error checking permissions:', e);
+              isAuthorized = false;
+            }
+
+            core.setOutput('is-fork', isFork.toString());
+            core.setOutput('is-authorized', isAuthorized.toString());
+
+            if (isFork && !isAuthorized) {
+              core.notice('⚠️ This PR is from a fork and requires approval from maintainers');
+            }
+
+  preview:
+    name: Deploy Preview
+    needs: security-check
+    runs-on: ubuntu-latest
+    if: |
+      github.event.workflow_run.conclusion != 'action_required' ||
+      github.event.workflow_run.conclusion == 'approved'
+    environment:
+      name: preview
+      url: ${{ steps.deploy.outputs.deployment-url }}
+    permissions:
+      deployments: write
+      issues: write
+      pull-requests: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
+      - name: Additional security checks for forks
+        id: security_checks
+        if: needs.security-check.outputs.is-fork == 'true'
+        run: |
+          # Function to check file patterns
+          check_patterns() {
+            local file="$1"
+            local patterns=(
+              "crypto\."
+              "eval[\s]*\("
+              "child_process"
+              "exec[A-Z][a-z]*\("
+              "http[s]?\."
+              "net\."
+              "process\.env"
+              "require\(['\"]child_process"
+              "fs\."
+              "new\s+Function"
+              "__proto__"
+              "Function\("
+              "require\(['\"]\.\."
+              "require\(['\"]~"
+              "process\.binding"
+              "v8\."
+              "vm\."
+              "\.constructor\."
+              "Object\.prototype"
+              "Object\.defineProperty"
+              "Object\.setPrototypeOf"
+            )
 
-      - name: Install Dependencies
-        run: npm ci
+            for pattern in "${patterns[@]}"; do
+              if grep -q "$pattern" "$file"; then
+                echo "⚠️ Suspicious pattern found in $file: $pattern"
+                return 1
+              fi
+            done
+            return 0
+          }
 
-      - name: Install Vercel CLI
-        run: npm install --global vercel@latest
+          exit_code=0
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              if file "$file" | grep -q "binary"; then
+                echo "❌ Binary file detected: $file"
+                exit_code=1
+              fi
 
-      - name: Build Project
-        run: npm run build
+              if ! file "$file" | grep -q "binary"; then
+                if ! check_patterns "$file"; then
+                  exit_code=1
+                fi
+              fi
+            fi
+          done < <(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }})
+
+          if [ $exit_code -eq 0 ]; then
+            echo "SECURITY_CHECK_RESULT=✅ All security checks passed" >> $GITHUB_ENV
+          else
+            echo "SECURITY_CHECK_RESULT=⚠️ Security review required - See above for details" >> $GITHUB_ENV
+            exit 1
+          fi
+
+      - name: Setup environment
+        uses: ./.github/actions/setup-environment
 
       - name: Deploy to Vercel
-        run: |
-          DEPLOYMENT_URL=$(vercel deploy --token=${{ secrets.VERCEL_TOKEN }} --yes)
-          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> $GITHUB_ENV
+        id: deploy
+        timeout-minutes: 10
+        uses: ./.github/actions/deploy/vercel/development
+        env:
+          # Pass all repository secrets to the action
+          REACT_APP_WS_PORT: ${{ secrets.REACT_APP_WS_PORT }}
+          REACT_APP_WS_URL: ${{ secrets.REACT_APP_WS_URL }}
+          REACT_OAUTH_URL: ${{ secrets.REACT_OAUTH_URL }}
+          REACT_CURRENT_ENVIRONMENT: preview
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          pr-number: ${{ github.event.pull_request.number }}
 
-      - name: Comment on PR
-        uses: actions/github-script@v6
+      - name: Add preview URL to pull request
+        uses: actions/github-script@v7
         with:
           script: |
-            const deploymentUrl = process.env.DEPLOYMENT_URL;
-            github.rest.issues.createComment({
+            const isFork = '${{ needs.security-check.outputs.is-fork }}' === 'true';
+            const isAuthorized = '${{ needs.security-check.outputs.is-authorized }}' === 'true';
+
+            let securityStatus = '';
+            if (isFork) {
+              securityStatus = `\n\n🔒 Security Status:
+              - PR is from a fork repository
+              - Author permission level: ${isAuthorized ? '✅ Authorized' : '⚠️ Requires Approval'}
+              - Security checks: ${process.env.SECURITY_CHECK_RESULT || '✅ Passed'}
+
+              Note: First-time contributors require maintainer approval for workflow runs.`;
+            }
+
+            const deploymentUrl = '${{ steps.deploy.outputs.deployment-url }}';
+            const comment = `✨ Preview deployment is ready!
+
+            🔗 Preview URL: ${deploymentUrl}
+            📝 Commit: ${context.sha.substring(0, 7)}
+            🕒 Deployed at: ${new Date().toISOString()}${securityStatus}`;
+
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `🚀 Preview deployment is ready! \n\nDeployed to: ${deploymentUrl}`
+              body: comment
             });
+
+      - name: Update deployment status
+        uses: ./.github/actions/deployment-status
+        if: success()
+        with:
+          environment: 'preview'
+          deployment-url: ${{ steps.deploy.outputs.deployment-url }}
+          sha: ${{ github.event.pull_request.head.sha }}
+          status: 'success'
+          description: '✨ Preview deployment completed'
+
+      - name: Handle deployment failure
+        if: failure()
+        uses: ./.github/actions/deployment-status
+        with:
+          environment: 'preview'
+          deployment-url: ${{ steps.deploy.outputs.deployment-url }}
+          sha: ${{ github.event.pull_request.head.sha }}
+          status: 'failure'
+          description: '❌ Preview deployment failed'
