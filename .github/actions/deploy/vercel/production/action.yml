@@ -50,6 +50,9 @@ runs:
           echo "$clean_name=${!secret}" >> $GITHUB_ENV
         done
         
+        echo "🚀 Installing all dependencies..."
+        npm ci --include=dev
+        
         echo "🚀 Running build command..."
         npm run build
         
