@@ -155,7 +155,7 @@ jobs:
           # Pass all repository secrets to the action
           REACT_APP_WS_PORT: ${{ secrets.REACT_APP_WS_PORT }}
           REACT_APP_WS_URL: ${{ secrets.REACT_APP_WS_URL }}
-          REACT_APP_OAUTH_URL: ${{ secrets.REACT_APP_OAUTH_URL }}
+          REACT_OAUTH_URL: ${{ secrets.REACT_OAUTH_URL }}
           REACT_APP_CURRENT_ENVIRONMENT: preview
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
