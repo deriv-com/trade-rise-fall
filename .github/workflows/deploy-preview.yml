@@ -1,7 +1,8 @@
 name: Deploy Preview
 on:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
+  pull_request:
+    branches:
+    - master
 
 env:
   VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
