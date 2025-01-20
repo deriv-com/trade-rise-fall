@@ -96,7 +96,12 @@ apiClient.interceptors.response.use(
     }
 
     if (error.response) {
-      console.error('Error response:', error.response);
+      // Log error details securely
+      console.error('Response Error:', {
+        status: error.response.status,
+        timestamp: new Date().toISOString(),
+        code: error.code || 'UNKNOWN_ERROR'
+      });
       
       // Handle 401 Unauthorized
       if (error.response.status === 401) {
@@ -121,9 +126,15 @@ apiClient.interceptors.response.use(
       }
 
     } else if (error.request) {
-      console.error('No response received:', error.request);
+      console.error('No response received', {
+        timestamp: new Date().toISOString(),
+        code: error.code || 'NO_RESPONSE'
+      });
     } else {
-      console.error('Error setting up request:', error.message);
+      console.error('Request setup error', {
+        timestamp: new Date().toISOString(),
+        code: error.code || 'SETUP_ERROR'
+      });
     }
 
     return Promise.reject(error);
@@ -142,14 +153,18 @@ export const apiRequest = async <T = any>(config: AxiosRequestConfig): Promise<T
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      // Log error details securely (avoid exposing sensitive info)
+      // Log error details securely with masked sensitive data
+      const urlObj = config.url ? new URL(config.url, process.env.REACT_APP_API_URL) : null;
+      const sanitizedPath = urlObj ? urlObj.pathname : 'unknown';
+      
       console.error('API Request Error:', {
-        url: config.url,
+        path: sanitizedPath,
         method: config.method,
         timestamp: new Date().toISOString(),
         errorType: error.name,
-        errorMessage: error.message,
         status: error.response?.status,
+        // Avoid logging full error message as it might contain sensitive data
+        errorCode: error.code || 'UNKNOWN_ERROR'
       });
 
       // Enhance error message for client
