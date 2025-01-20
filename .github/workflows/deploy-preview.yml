@@ -1,6 +1,6 @@
 name: Deploy Preview
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
 
 env:
@@ -14,12 +14,17 @@ env:
 permissions:
   pull-requests: write
   contents: read
+  deployments: write
 
 jobs:
   Deploy-Preview:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
