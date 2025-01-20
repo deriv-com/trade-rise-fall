@@ -60,7 +60,6 @@ export class AuthStore {
   logout = () => {
     this.setAuthenticated(false);
     authService.clearAuth();
-    window.location.href = '/trade-rise-fall/login';
   };
 }
 

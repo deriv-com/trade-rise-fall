@@ -1,13 +1,14 @@
 import React from "react";
 import { Button } from "@deriv-com/quill-ui";
 import { BrandDerivLogoCoralIcon } from "@deriv/quill-icons";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { observer } from "mobx-react-lite";
 import { authStore } from "../../stores/AuthStore";
 import "./Header.scss";
 
 const Header = observer(function Header() {
   const { isAuthenticated, logout } = authStore;
+  const navigate = useNavigate();
 
   return (
     <nav className="header">
@@ -21,11 +22,18 @@ const Header = observer(function Header() {
         </Link>
       </div>
       {isAuthenticated ? (
-        <Button onClick={logout} variant="primary" size="md">
+        <Button 
+          onClick={() => {
+            logout();
+            navigate('/login');
+          }} 
+          variant="primary" 
+          size="md"
+        >
           Log out
         </Button>
       ) : (
-        <Button onClick={() => window.location.href = '/trade-rise-fall/login'} variant="primary" size="md">
+        <Button onClick={() => navigate('/login')} variant="primary" size="md">
           Log in
         </Button>
       )}
