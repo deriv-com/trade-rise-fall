@@ -95,7 +95,7 @@ runs:
         ls -la dist/
         
         echo "☁️ Deploying to Vercel preview environment..."
-        DEPLOYMENT=$(vercel deploy --cwd dist --token=${{ inputs.vercel-token }} --yes)
+        DEPLOYMENT=$(vercel deploy dist --token=${{ inputs.vercel-token }} --yes)
         DEPLOYMENT_URL="$DEPLOYMENT"
         DEPLOYMENT_ID=$(echo "$DEPLOYMENT" | rev | cut -d'/' -f1 | rev)
         
