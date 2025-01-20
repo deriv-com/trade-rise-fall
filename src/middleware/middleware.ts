@@ -27,41 +27,15 @@ const apiClient = axios.create({
   }
 });
 
-// Track request timestamps for rate limiting
-const requestTimestamps: number[] = [];
-const RATE_LIMIT = 100; // Max requests per minute
-const RATE_WINDOW = 60 * 1000; // 1 minute window
-
 // Request interceptor
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Rate limiting
-    const now = Date.now();
-    requestTimestamps.push(now);
-    // Remove timestamps outside current window
-    while (requestTimestamps[0] < now - RATE_WINDOW) {
-      requestTimestamps.shift();
-    }
-    if (requestTimestamps.length > RATE_LIMIT) {
-      throw new Error('Rate limit exceeded');
-    }
-
     // Add authorization token and security headers
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers = config.headers ?? new AxiosHeaders();
       config.headers.set('Authorization', `Bearer ${token}`);
     }
-
-    // Add security headers
-    // const headers = config.headers ?? new AxiosHeaders();
-    // headers.set('X-Content-Type-Options', 'nosniff');
-    // headers.set('X-Frame-Options', 'DENY');
-    // headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
-    // headers.set('X-XSS-Protection', '1; mode=block');
-    // headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-    // headers.set('Permissions-Policy', 'geolocation=(), microphone=(), camera=()');
-    // config.headers = headers;
 
     // Validate request URL
     if (config.url) {
