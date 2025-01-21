@@ -31,7 +31,7 @@ export default defineConfig({
     },
   },
   output: {
-    assetPrefix: "/trade-rise-fall",
+    assetPrefix: "/",
     copy: [
       {
         from: "public",
