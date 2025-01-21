@@ -1,19 +1,5 @@
 import { makeAutoObservable } from "mobx";
 import { authService } from "../services/auth.service";
-import { apiRequest } from "../middleware/middleware";
-
-interface LoginCredentials {
-  accountId: string;
-  password: string;
-}
-
-interface LoginResponse {
-  token: string;
-  user?: {
-    id: string;
-    email: string;
-  };
-}
 
 class AuthError extends Error {
   constructor(message: string) {

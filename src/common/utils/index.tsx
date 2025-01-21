@@ -25,16 +25,3 @@ export const getChartUrl = (): string => {
 export const isLogged = (): boolean => {
   return authStore.isAuthenticated;
 };
-
-export const getUrlBase = (path: string = ""): string => {
-  const l = window.location;
-
-  // Check if pathname starts with /br_ pattern
-  if (!/^\/(br_)/.test(l.pathname)) return path;
-
-  // Extract the first path segment and combine with provided path
-  const baseSegment = l.pathname.split("/")[1];
-  const normalizedPath = /^\//.test(path) ? path : `/${path}`;
-
-  return `/${baseSegment}${normalizedPath}`;
-};
