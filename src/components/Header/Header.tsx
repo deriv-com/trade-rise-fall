@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Button } from "@deriv-com/quill-ui";
 import { BrandDerivLogoCoralIcon } from "@deriv/quill-icons";
 import { Link, useNavigate } from "react-router-dom";
@@ -8,14 +8,23 @@ import { balanceStore } from "../../stores/BalanceStore";
 import "./Header.scss";
 
 const Header = observer(function Header() {
-  const { isAuthenticated, logout } = authStore;
-  const { balance, currency } = balanceStore;
   const navigate = useNavigate();
+  
+  const auth = useMemo(() => ({
+    isAuthenticated: authStore.isAuthenticated,
+    logout: authStore.logout
+  }), [authStore.isAuthenticated, authStore.logout]);
+
+  const balanceInfo = useMemo(() => ({
+    balance: balanceStore.balance,
+    currency: balanceStore.currency
+  }), [balanceStore.balance, balanceStore.currency]);
+
 
   const handleLogout = useCallback(() => {
-    logout();
+    auth.logout();
     navigate('/login');
-  }, [logout, navigate]);
+  }, [auth.logout, navigate]);
 
   const handleLogin = useCallback(() => {
     navigate('/login');
@@ -33,12 +42,12 @@ const Header = observer(function Header() {
         </Link>
       </div>
       <div className="header__right">
-        {isAuthenticated && (
+        {auth.isAuthenticated && (
           <div className="header__balance">
-            {balance} {currency}
+            {balanceInfo.balance} {balanceInfo.currency}
           </div>
         )}
-        {isAuthenticated ? (
+        {auth.isAuthenticated ? (
           <Button 
             onClick={handleLogout}
             variant="primary" 

@@ -23,6 +23,27 @@ export class AuthenticationError extends ApiError {
     }
 }
 
+export class TokenValidationError extends AuthenticationError {
+    constructor(message: string = 'Invalid token') {
+        super(message);
+        this.name = 'TokenValidationError';
+    }
+}
+
+export class TokenExpirationError extends AuthenticationError {
+    constructor(message: string = 'Token has expired') {
+        super(message);
+        this.name = 'TokenExpirationError';
+    }
+}
+
+export class TokenPayloadError extends AuthenticationError {
+    constructor(message: string = 'Invalid token payload') {
+        super(message);
+        this.name = 'TokenPayloadError';
+    }
+}
+
 export class TimeoutError extends ApiError {
     constructor(message: string = 'Request timed out') {
         super(message, 408);

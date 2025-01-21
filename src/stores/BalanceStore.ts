@@ -1,8 +1,8 @@
 import { makeAutoObservable } from 'mobx';
 
 export class BalanceStore {
-    balance: string = '34';
-    currency: string = 'USD';
+    balance: string = '';
+    currency: string = '';
 
     constructor() {
         makeAutoObservable(this);
