@@ -26,15 +26,23 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Configure Vercel
+      shell: bash
+      run: |
+        echo "🔧 Configuring Vercel CLI..."
+        vercel config set token ${{ inputs.vercel-token }}
+        echo "✅ Vercel CLI configured"
+
     - name: Pull Vercel Environment Information
       shell: bash
       run: |
         echo "🔄 Pulling Vercel environment information..."
         echo "  - Environment: Preview"
         echo "  - PR Number: ${{ inputs.pr-number }}"
-        vercel pull --yes --environment=preview --token=${{ inputs.vercel-token }}
+        vercel pull --yes --environment=preview --token=${{ inputs.vercel-token }} --git-branch=preview
         echo "✅ Successfully pulled Vercel environment information"
       env:
+        VERCEL_TOKEN: ${{ inputs.vercel-token }}
         VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
         VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}
 
@@ -55,6 +63,9 @@ runs:
           echo "$clean_name=${!secret}" >> $GITHUB_ENV
         done
         
+        echo "🚀 Installing all dependencies..."
+        npm ci --include=dev
+        
         echo "🚀 Running build command..."
         npm run build
         
@@ -70,6 +81,7 @@ runs:
         
         echo "✅ Preview build completed successfully"
       env:
+        VERCEL_TOKEN: ${{ inputs.vercel-token }}
         VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
         VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}
 
@@ -78,12 +90,12 @@ runs:
       shell: bash
       run: |
         echo "🚀 Starting Vercel preview deployment..."
-        echo "📂 Deploying dist directory..."
-        echo "  - Current directory contents:"
-        ls -la dist/
+        echo "📂 Preparing for deployment..."
+        echo "  - Project structure:"
+        ls -la
         
         echo "☁️ Deploying to Vercel preview environment..."
-        DEPLOYMENT=$(vercel deploy --cwd dist --token=${{ inputs.vercel-token }} --yes)
+        DEPLOYMENT=$(vercel --token=${{ inputs.vercel-token }} --yes)
         DEPLOYMENT_URL="$DEPLOYMENT"
         DEPLOYMENT_ID=$(echo "$DEPLOYMENT" | rev | cut -d'/' -f1 | rev)
         
@@ -97,5 +109,6 @@ runs:
         echo "✅ Preview deployment completed successfully"
         echo "🌍 Preview URL: $DEPLOYMENT_URL"
       env:
+        VERCEL_TOKEN: ${{ inputs.vercel-token }}
         VERCEL_ORG_ID: ${{ inputs.vercel-org-id }}
         VERCEL_PROJECT_ID: ${{ inputs.vercel-project-id }}
