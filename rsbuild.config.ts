@@ -19,7 +19,7 @@ export default defineConfig({
   ],
   source: {
     entry: {
-      index: "./src/main.jsx",
+      index: "./src/main.tsx",
     },
     define: {
       "process.env": JSON.stringify(process.env),
@@ -31,8 +31,15 @@ export default defineConfig({
     },
   },
   output: {
-    assetPrefix: "/trade-rise-fall/",
+    assetPrefix: "/trade-rise-fall",
     copy: [
+      {
+        from: "public",
+        to: ".",
+        globOptions: {
+          dot: true,
+        },
+      },
       {
         from: "node_modules/@deriv/deriv-charts/dist/*",
         to: "js/smartcharts/[name][ext]",
@@ -56,9 +63,10 @@ export default defineConfig({
   },
   html: {
     template: "./index.html",
+    inject: "body",
   },
   server: {
-    port: 8443,
+    port: 5173,
     compress: true,
   },
   dev: {

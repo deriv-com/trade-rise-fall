@@ -1,82 +1,65 @@
 import { makeAutoObservable } from "mobx";
 import { authService } from "../services/auth.service";
 
+class AuthError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'AuthError';
+  }
+}
+
 export class AuthStore {
   isAuthenticated: boolean = false;
-  isInitializing: boolean = true;
   isAuthorizing: boolean = false;
+  lastError: string | null = null;
 
   constructor() {
+    const token = authService.getStoredToken();
+    this.isAuthenticated = !!token;
     makeAutoObservable(this);
   }
 
-  public async initialize() {
-    try {
-      const token = authService.getStoredToken();
-      if (token) {
-        const success = await authService.validateToken(token);
-        this.setAuthenticated(success);
-      }
-    } catch (error) {
-      console.error('Auth initialization error:', error);
-      this.setAuthenticated(false);
-    } finally {
-      this.setInitializing(false);
-    }
-  }
-
-  setInitializing = (state: boolean) => {
-    this.isInitializing = state;
-  };
-
-  setAuthenticated = (state: boolean) => {
+  private setAuthenticated = (state: boolean) => {
     this.isAuthenticated = state;
   };
 
-  setAuthorizing = (state: boolean) => {
+  private setAuthorizing = (state: boolean) => {
     this.isAuthorizing = state;
   };
 
-  login = () => {
-    const app_id = process.env.REACT_APP_WS_PORT;
-    const server_url = process.env.REACT_OAUTH_URL;
+  private setLastError = (error: string | null) => {
+    this.lastError = error;
+  };
 
-    if (!app_id || !server_url) {
-      console.error('Required environment variables are not set');
-      return;
+  handleLoginSuccess = (token: string) => {
+    authService.setToken(token);
+    this.setAuthenticated(true);
+    this.setAuthorizing(false);
+    this.setLastError(null);
+  };
+
+  handleLoginFailure = (error: Error) => {
+    this.setAuthenticated(false);
+    this.setAuthorizing(false);
+    this.setLastError(error.message);
+  };
+
+  startAuthorizing = () => {
+    if (this.isAuthorizing) {
+      throw new AuthError('Authorization already in progress');
     }
-
-    const domain = window.location.hostname;
-    const redirect_uri = `${window.location.protocol}//${domain}${window.location.port ? `:${window.location.port}` : ''}${window.location.pathname}`;
-
-    const deriv_oauth_url = `${server_url}/oauth2/authorize?app_id=${app_id}&l=EN&brand=deriv&redirect_uri=${encodeURIComponent(redirect_uri)}`;
-
-    window.location.href = deriv_oauth_url;
+    this.setAuthorizing(true);
+    this.setLastError(null);
   };
 
   logout = () => {
     this.setAuthenticated(false);
+    this.setLastError(null);
     authService.clearAuth();
   };
 
-  handleAuthCallback = async (token: string): Promise<boolean> => {
-    if (this.isAuthorizing) {
-      console.log('Authorization already in progress');
-      return false;
-    }
-
-    this.setAuthorizing(true);
-
-    try {
-      const success = await authService.validateToken(token);
-      this.setAuthenticated(success);
-      return success;
-    } catch (error) {
-      console.error('Auth callback error:', error);
-      return false;
-    } finally {
-      this.setAuthorizing(false);
-    }
+  clearError = () => {
+    this.setLastError(null);
   };
 }
 

@@ -1,83 +1,43 @@
-import React, { Suspense, useEffect } from "react";
-import {
-  BrowserRouter,
-  Routes,
-  Route,
-  useLocation,
-  useNavigate,
-} from "react-router-dom";
+import React, { Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@deriv-com/quill-ui";
 import { observer } from "mobx-react-lite";
 import LoadingSpinner from "./components/LoadingSpinner/LoadingSpinner";
 import Header from "./components/Header/Header";
-import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
-import { authStore } from "./stores/AuthStore";
-import { authService } from "./services/auth.service";
 
+// Lazy load components for better performance
 const Homepage = React.lazy(() => import("./pages/homepage"));
 const DerivTrading = React.lazy(() => import("./pages/trading"));
 const NotFoundPage = React.lazy(() => import("./pages/404"));
+const LoginPage = React.lazy(() => import("./pages/login"));
 
-const AuthHandler: React.FC = observer(() => {
-  const location = useLocation();
-  const navigate = useNavigate();
+// Separate component for the loading fallback
+const LoadingFallback = () => (
+  <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+    <LoadingSpinner />
+  </div>
+);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const token = params.get("token1");
-
-    if (token) {
-      authStore.handleAuthCallback(token).then((success) => {
-        // Clear the token from URL
-        const cleanUrl = window.location.pathname;
-        window.history.replaceState({}, document.title, cleanUrl);
-
-        if (success) {
-          navigate("/dashboard");
-        } else {
-          navigate("/");
-        }
-      });
-    }
-  }, [location, navigate]);
-
-  return null;
-});
-
-const AppContent: React.FC = () => {
+const AppContent = () => {
   return (
-    <Suspense fallback={<LoadingSpinner />}>
-      <AuthHandler />
+    <Suspense fallback={<LoadingFallback />}>
       <Header />
       <Routes>
+        {/* Public routes */}
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<Homepage />} />
         <Route path="/dashboard" element={<DerivTrading />} />
-        <Route path="*" element={<NotFoundPage />} />
+        
+        {/* Handle 404 and invalid routes */}
+        <Route path="/404" element={<NotFoundPage />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
       </Routes>
     </Suspense>
   );
 };
 
 const App: React.FC = observer(() => {
-  const [isInitialized, setIsInitialized] = React.useState(false);
-
-  useEffect(() => {
-    // Initialize auth store
-    authStore.initialize().then(() => {
-      setIsInitialized(true);
-    });
-
-    return () => {
-      // Cleanup auth service when app unmounts
-      authService.cleanup();
-    };
-  }, []);
-
-  if (!isInitialized) {
-    return <LoadingSpinner />;
-  }
-
   return (
     <ErrorBoundary>
       <ThemeProvider theme="light" persistent>
