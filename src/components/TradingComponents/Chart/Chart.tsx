@@ -12,7 +12,6 @@ import "./Chart.scss";
 export const Chart = observer(() => {
   const {
     symbol,
-    chartStatus,
     showChart,
     setChartStatus,
     setSymbol,

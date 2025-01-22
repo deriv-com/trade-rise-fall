@@ -15,7 +15,7 @@ export const PayoutInfo = ({
   isLoading,
 }: PayoutInfoProps) => {
   return (
-    <div className="payout-info-row">
+    <div className={`payout-info-row payout-info-row--${type}`} data-testid="payout-info">
       {!isLoading && (
         <>
           <Text as="span" size="sm" className="text-bold">

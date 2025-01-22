@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Button } from "@deriv-com/quill-ui";
 import { BrandDerivLogoCoralIcon } from "@deriv/quill-icons";
 import { Link, useNavigate } from "react-router-dom";

@@ -6,9 +6,9 @@
     "dev": "rsbuild dev --port 5173 --open",
     "build": "rsbuild build",
     "preview": "rsbuild preview",
-    "test": "jest",
+    "test": "jest --verbose",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage --verbose"
   },
   "dependencies": {
     "@deriv-com/quill-ui": "^1.24.4",
