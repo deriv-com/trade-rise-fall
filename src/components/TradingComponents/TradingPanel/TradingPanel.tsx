@@ -19,12 +19,10 @@ export const TradingPanel = observer(() => {
   const {
     duration,
     price,
-    allowEquals,
     selectedDurationTab,
     selectedStakeTab,
     setDuration,
     setPrice,
-    setAllowEquals,
     setSelectedDurationTab,
     setSelectedStakeTab,
     durationError,
@@ -34,7 +32,7 @@ export const TradingPanel = observer(() => {
     setOpenContractsModalVisible,
   } = tradingPanelStore;
 
-  const { proposal, clearProposal, isLoading, buyContract } =
+  const { proposal, isLoading, buyContract } =
     useRiseFallTrading(
       chartStore.symbol,
       price,

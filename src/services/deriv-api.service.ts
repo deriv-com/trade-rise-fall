@@ -108,7 +108,7 @@ export class DerivAPIService {
    * @private
    */
   private async resubscribeAll() {
-    console.log("this is happening");
+    console.log("Resubscribing to all active subscriptions");
     // Store current subscriptions
     const currentSubscriptions = Array.from(this.activeSubscriptions.entries());
 
@@ -116,7 +116,7 @@ export class DerivAPIService {
     this.activeSubscriptions.clear();
 
     // Resubscribe to each subscription
-    for (const [key, subscription] of currentSubscriptions) {
+    for (const [key] of currentSubscriptions) {
       const [prefix, symbol] = key.split("_");
       if (symbol) {
         try {
